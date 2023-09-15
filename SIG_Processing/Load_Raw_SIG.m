@@ -1,8 +1,9 @@
-function [signal_file] = Load_Raw_SIG(Subject, Date, Task)
+function [signal_file] = Load_Raw_SIG(Group, Subject, Date, Test, Task)
 
 %% Define the file location
-base_dir = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Toe_Startle\', Subject, '\', Date, '\');
-file_dir = strcat(base_dir, '\RawFiles\');
+base_dir = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Toe_Startle\', ...
+    Group, '\', Subject, '\', Date, '\');
+file_dir = strcat(base_dir, '\RawFiles\', Test, '\');
 open_file = dir(strcat(file_dir, '*.mat'));
 
 % Find the names of each file

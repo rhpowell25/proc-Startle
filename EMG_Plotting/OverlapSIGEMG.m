@@ -8,16 +8,20 @@ disp('Overlap sig EMG Function:');
 % Do you want to plot the rewarded or failed trials ('R' or 'F')
 trial_choice = 'R';
 
-% Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
-EMG_Choice = 'Raw';
+% Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
+EMG_Choice = 'Rect';
 
 bin_width = sig.bin_width;
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
+% Title info
+Subject = sig.meta.subject;
+Task = strrep(sig.meta.task, '_', ' ');
+
 % When do you want to start & stop plotting
 start_length = 1; % Sec.
 start_idx = start_length/bin_width;
-stop_length = 1.4; % Sec.
+stop_length = 1.3; % Sec.
 stop_idx = round(stop_length/bin_width);
 
 % Font specifications
@@ -26,7 +30,7 @@ legend_font_size = 12;
 title_font_size = 15;
 font_name = 'Arial';
 figure_width = 700;
-figure_height = 400;
+figure_height = 350;
 
 %% Indexes for rewarded trials
 
@@ -108,12 +112,12 @@ for ii = 1:length(EMG_Names)
     hold on
 
     % Titling the plot
-    EMG_title = EMG_Names{ii};
-    fig_titles{ii} = sprintf('EMG Reaction Times: %s', EMG_title);
+    fig_titles{ii} = strcat(Task, {' '}, 'Reaction Times:', {' '}, Subject);
     title(fig_titles{ii}, 'FontSize', title_font_size)
 
     % Labels
-    ylabel('EMG', 'FontSize', label_font_size);
+    y_label = strcat(EMG_Names{ii}, {' '}, 'EMG');
+    ylabel(y_label, 'FontSize', label_font_size);
     xlabel('Time (sec.)', 'FontSize', label_font_size);
 
     % Setting the x-axis limits

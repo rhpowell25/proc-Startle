@@ -1,4 +1,4 @@
-function Reaction_Time_ViolinPlot(Subject, Plot_Figs, Save_Figs)
+function Reaction_Time_ViolinPlot(Group, Subject, Plot_Figs, Save_Figs)
 
 %% File Description:
 
@@ -13,6 +13,7 @@ function Reaction_Time_ViolinPlot(Subject, Plot_Figs, Save_Figs)
 %% Basic Settings, some variable extractions, & definitions
 
 % Font specifications
+axis_expansion = 0.05;
 label_font_size = 17;
 legend_font_size = 13;
 title_font_size = 20;
@@ -24,106 +25,103 @@ if ~isequal(Save_Figs, 0)
 end
 
 %% Initialize the output variables
-Task_Name = {'AbH_Flex'; 'AbH_Abd'; 'TA'; 'SOL'};
+Task_Name = {'AbH_Flex'; 'TA'; 'SOL'};
 
 title_strings = struct([]);
 
-F_rxn_time = struct([]);
-Fs_rxn_time = struct([]);
-FS_rxn_time = struct([]);
+rxn_time = struct([]);
+rxn_state = struct([]);
 
 %% Look through all the tasks
 for ii = 1:length(Task_Name)
 
-    [F_rxn_time_excel, ~] = Load_Toe_Excel(Subject, Task_Name{ii}, 'F');
-    [Fs_rxn_time_excel, ~] = Load_Toe_Excel(Subject, Task_Name{ii}, 'F+s');
-    [FS_rxn_time_excel, ~] = Load_Toe_Excel(Subject, Task_Name{ii}, 'F+S');
+    [rxn_time_excel, ~] = Load_Toe_Excel(Group, Subject, Task_Name{ii}, 'All');
     
-    F_rxn_time{ii,1} = F_rxn_time_excel.rxn_time;
-    Fs_rxn_time{ii,1} = Fs_rxn_time_excel.rxn_time;
-    FS_rxn_time{ii,1} = FS_rxn_time_excel.rxn_time;
-
+    if ~isempty(rxn_time_excel)
+        rxn_time{ii,1} = rxn_time_excel{1,1}.rxn_time;
+        rxn_state{ii,1} = rxn_time_excel{1,1}.State;
+    else
+        rxn_time{ii,1} = NaN;
+        rxn_state{ii,1} = NaN;
+    end
 end
 
 %% Plot the violin plot
 
 if isequal(Plot_Figs, 1)
     for ii = 1:length(Task_Name)
+
+        if isnan(rxn_time{ii,1})
+            continue
+        end
     
         violin_fig = figure;
         violin_fig.Position = [200 50 fig_size fig_size];
         hold on
 
         % Find the y_limits
-        F_min = min(F_rxn_time{ii});
-        Fs_min = min(Fs_rxn_time{ii});
-        FS_min = min(FS_rxn_time{ii});
-        arr_min = cat(1, F_min, Fs_min, FS_min);
-        y_min = min(arr_min) - 0.1;
-        F_max = max(F_rxn_time{ii});
-        Fs_max = max(Fs_rxn_time{ii});
-        FS_max = max(FS_rxn_time{ii});
-        arr_max = cat(1, F_max, Fs_max, FS_max);
-        y_max = max(arr_max) + 0.1;
+        y_min = min(rxn_time{ii});
+        y_max = max(rxn_time{ii});
         
         % Title
         Task_title = Task_Name{ii};
         title_strings{ii} = (sprintf('EMG Reaction Times: %s', Task_title));
         sgtitle(title_strings{ii}, 'FontSize', title_font_size, 'Interpreter', 'none');
         
-        % F violin plot
-        subplot(1,3,1)
-        hold on
-        violin_positions = (1:length(F_rxn_time{ii}));
-        Violin_Plot(F_rxn_time(ii), violin_positions, 'ViolinColor', [0.9290, 0.6940, 0.1250]);
-        ylim([y_min, y_max])
+        % Violin plot
+        Violin_Plot(rxn_time{ii,1}, rxn_state{ii,1}, 'GroupOrder', {'F', 'F+s', 'F+S'});
+        ylim([y_min, y_max + axis_expansion])
         
         % Labels
-        xlabel('F', 'FontSize', label_font_size)
+        xlabel('States', 'FontSize', label_font_size)
         ylabel('Reaction Time (Sec.)', 'FontSize', label_font_size);
-    
-        % Fs violin plot
-        subplot(1,3,2)
-        hold on
-        violin_positions = (1:length(Fs_rxn_time{ii}));
-        Violin_Plot(Fs_rxn_time(ii), violin_positions, 'ViolinColor', [0.5, 0, 0.5]);
-        ylim([y_min, y_max])
-        
-        % Labels
-        xlabel('F+s', 'FontSize', label_font_size)
-    
-        % FS violin plot
-        subplot(1,3,3)
-        hold on
-        violin_positions = (1:length(FS_rxn_time{ii}));
-        Violin_Plot(FS_rxn_time(ii), violin_positions, 'ViolinColor', [1, 0, 0]);
-        ylim([y_min, y_max])
-        
-        % Labels
-        xlabel('F+S', 'FontSize', label_font_size)
         
         % Do the statistics
-        [~, violin_plot_p_val] = ttest2(Fs_rxn_time{ii}, FS_rxn_time{ii});
+        F_rxn_time = rxn_time{ii,1}(strcmp(rxn_state{ii,1}, 'F'));
+        Fs_rxn_time = rxn_time{ii,1}(strcmp(rxn_state{ii,1}, 'F+s'));
+        FS_rxn_time = rxn_time{ii,1}(strcmp(rxn_state{ii,1}, 'F+S'));
+        [~, Fvs_p_val] = ttest2(F_rxn_time, Fs_rxn_time);
+        [~, Svs_p_val] = ttest2(Fs_rxn_time, FS_rxn_time);
+        [~, FvS_p_val] = ttest2(F_rxn_time, FS_rxn_time);
         
-        % Annotation of the p-value
-        if round(violin_plot_p_val, 3) > 0
-            legend_dims = [0.015 0.45 0.44 0.44];
-            p_value_string = strcat('p =', {' '}, mat2str(round(violin_plot_p_val, 3)));
-            legend_string = {char(p_value_string)};
-            ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
-                'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
-                'EdgeColor','none', 'horizontalalignment', 'center');
-            ann_legend.FontSize = legend_font_size;
-        end
-        if isequal(round(violin_plot_p_val, 3), 0)
-            legend_dims = [0.015 0.45 0.44 0.44];
+        % Annotation of the S-vs-s p-value
+        if round(Svs_p_val, 3) > 0
+            p_value_string = strcat('p =', {' '}, mat2str(round(Svs_p_val, 3)));
+        elseif isequal(round(Svs_p_val, 3), 0)
             p_value_string = strcat('p <', {' '}, '0.001');
-            legend_string = {char(p_value_string)};
-            ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
-                'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
-                'EdgeColor','none', 'horizontalalignment', 'center');
-            ann_legend.FontSize = legend_font_size;
         end
+        legend_dims = [0.55 0.35 0.44 0.44];
+        legend_string = {char(p_value_string)};
+        ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
+            'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
+            'EdgeColor','none', 'horizontalalignment', 'center');
+        ann_legend.FontSize = legend_font_size;
+
+        % Annotation of the F-vs-s p-value
+        if round(Fvs_p_val, 3) > 0
+            p_value_string = strcat('p =', {' '}, mat2str(round(Fvs_p_val, 3)));
+        elseif isequal(round(Fvs_p_val, 3), 0)
+            p_value_string = strcat('p <', {' '}, '0.001');
+        end
+        legend_dims = [0.025 0.35 0.44 0.44];
+        legend_string = {char(p_value_string)};
+        ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
+            'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
+            'EdgeColor','none', 'horizontalalignment', 'center');
+        ann_legend.FontSize = legend_font_size;
+
+        % Annotation of the F-vs-S p-value
+        if round(FvS_p_val, 3) > 0
+            p_value_string = strcat('p =', {' '}, mat2str(round(FvS_p_val, 3)));
+        elseif isequal(round(FvS_p_val, 3), 0)
+            p_value_string = strcat('p <', {' '}, '0.001');
+        end
+        legend_dims = [0.28755 0.45 0.44 0.44];
+        legend_string = {char(p_value_string)};
+        ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
+            'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
+            'EdgeColor','none', 'horizontalalignment', 'center');
+        ann_legend.FontSize = legend_font_size;
     
     end
 end

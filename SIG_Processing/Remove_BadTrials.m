@@ -4,18 +4,47 @@ function [sig] = Remove_BadTrials(sig)
 %% Which experiment are you looking at
 bad_trials = [];
 
-if strcmp(sig.meta.subject, 'RM')
+%% SCI
+if strcmp(sig.meta.subject, 'PM')
     if strcmp(sig.meta.task, 'AbH_Flex')
-        bad_trials = [7; 8; 9; 16; 19; 21; 22; 41; 55];
+        bad_trials = [3; 4; 8; 9; 12; 14; 15; 22; 23; 40; 41; 43];
+    end
+end
+
+if strcmp(sig.meta.subject, 'JW')
+    if strcmp(sig.meta.task, 'AbH_Flex')
+        bad_trials = [13; 20; 50; 60];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
-        bad_trials = [5; 7; 13; 20; 22; 25; 28; 36; 40; 41; 42; 45; 50; 52; 53; 54; 58; 60];
+        bad_trials = [4; 5; 7; 10; 14; 15; 19; 20; 21; 25; 28; 29; 45; 52; 55];
+    end
+    if strcmp(sig.meta.task, 'Plantar')
+        bad_trials = [2; 17; 22; 28; 60];
+    end
+end
+
+if strcmp(sig.meta.subject, 'MR')
+    if strcmp(sig.meta.task, 'AbH_Flex')
+        bad_trials = [3; 5; 7; 8; 9; 10; 11; 12; 13; 26; 31; 36; 42; 46; 48; 52; 56; 59];
+    end
+    if strcmp(sig.meta.task, 'AbH_Abd')
+        bad_trials = [3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; 18; 19; 22; 24; 26; 40; 41; 46; 48];
+    end
+    if strcmp(sig.meta.task, 'Plantar')
+        bad_trials = [11; 14; 22; 27; 28; 31; 37; 38; 45; 51; 52; 55; 60];
     end
     if strcmp(sig.meta.task, 'TA')
-        bad_trials = [18; 42; 46; 47];
+        bad_trials = [1; 3; 5; 8; 20; 24];
     end
     if strcmp(sig.meta.task, 'SOL')
-        bad_trials = [7; 18; 19; 20; 22; 23; 34; 35; 42];
+        bad_trials = [16; 17; 18; 19; 20; 21; 23; 24];
+    end
+end
+
+%% Control Subjects
+if strcmp(sig.meta.subject, 'HP')
+    if strcmp(sig.meta.task, 'Plantar')
+        bad_trials = [13; 14];
     end
 end
 

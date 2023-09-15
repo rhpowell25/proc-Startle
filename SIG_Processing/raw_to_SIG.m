@@ -1,7 +1,9 @@
 function [sig] = raw_to_SIG(params)
 %% Extract the paramaters
 
+Group = params.Group;
 Subject = params.Subject;
+Test = params.Test;
 Date = params.Date;
 Subject_Side = params.Subject_Side;
 Task = params.Task;
@@ -10,7 +12,7 @@ GoCue_Time = params.GoCue_Time;
 
 %% Load the signal file
 
-[signal_file] = Load_Raw_SIG(Subject, Date, Task);
+[signal_file] = Load_Raw_SIG(Group, Subject, Date, Test, Task);
 file_name = signal_file.file_name;
 
 %% Extract trial numbers the signal file
@@ -24,13 +26,8 @@ end
 
 States = strings;
 for ii = 1:length(trial_num)
-    if contains(signal_file.frameinfo(ii).label, strcat('F', ' (s'))
-        States{ii,1} = 'F';
-    elseif contains(signal_file.frameinfo(ii).label, strcat('F+s', ' (s'))
-        States{ii,1} = 'F+s';
-    elseif contains(signal_file.frameinfo(ii).label, strcat('F+S', ' (s'))
-        States{ii,1} = 'F+S';
-    end
+    State = signal_file.frameinfo(ii).label;
+    States{ii,1} = extractBefore(State, ' (s');
 end
 
 %% Extract trial start, gocue, & end time the signal file
@@ -65,34 +62,64 @@ Trial_Table.State = States;
 
 %% Extract the EMG from the signal file
 
-% Define the EMG names
-EMG_names = struct([]);
-EMG_names{1} = 'ABH';
-EMG_names{2} = 'TA';
-EMG_names{3} = 'SOL';
+% How many channels do you want to extract
+EMG_length = 4;
 
-% Define the raw EMG
+% Extract the EMG names
+EMG_names = struct([]);
+for pp = 1:EMG_length
+    EMG_names{pp,1} = signal_file.chaninfo(pp).title;
+end
+% Extract the raw EMG
 raw_EMG = struct([]);
 for pp = 1:length(trial_num)
-    raw_EMG{pp,1} = signal_file.values(:,1:3,pp);
+    raw_EMG{pp,1} = signal_file.values(:,1:EMG_length,pp);
 end
 
 % Sampling rate
 samp_rate = length(raw_EMG{1}) / Trial_Length;
 
-%% Generate the sig meta structure
+%% Extract the force from the signal file
+for ii = 1:length(signal_file.chaninfo)
+    if strcmp(signal_file.chaninfo(ii).title, 'Force')
+        Force_idx = ii;
+        break
+    else
+        Force_idx = NaN;
+    end
+end
+
+if ~isnan(Force_idx)
+    Force = struct([]);
+    for pp = 1:length(trial_num)
+        Force{pp,1} = signal_file.values(:,Force_idx,pp);
+    end
+end
+
+%% Generate the sig structure
 sig = struct([]);
 
+% Meta data
 sig(1).meta = struct([]);
 sig.meta(1).rawFileName = file_name(1:end-4);
 sig.meta.date = Date;
 sig.meta.task = Task;
+sig.meta.test = Test;
 sig.meta.subject = Subject;
 sig.meta.side = Subject_Side;
 
 % Bin width
 bin_width = Trial_Length / length(raw_EMG{1});
 sig.bin_width = bin_width;
+
+% Truth values
+sig.has_EMG = true;
+if ~isnan(Force_idx)
+    sig.has_force = true;
+    sig.force = Force;
+else
+    sig.has_force = false;
+end
 
 % Trial info
 sig.trial_info_table_header = table_header;

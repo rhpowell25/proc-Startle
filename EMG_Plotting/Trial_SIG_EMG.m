@@ -5,29 +5,32 @@ disp('Average sig EMG Function:');
 
 %% Basic Settings, some variable extractions, & definitions
 
+% Do you want to manually set the y-axis?
+man_y_axis = 'No';
+%man_y_axis = [0, 0.2];
+
 % Do you want to plot the rewarded or failed trials ('R' or 'F')
 trial_choice = 'R';
 
-% Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
-EMG_Choice = 'Raw';
+% Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
+EMG_Choice = 'Proc';
 
 bin_width = sig.bin_width;
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to stop plotting
-stop_length = 2; % Sec.
-stop_idx = stop_length/bin_width;
+stop_time = 3; % Sec.
+stop_idx = stop_time/bin_width;
 
 % Where will the gocue be plotted
 GoCue_idx = 1 / bin_width;
 
 % Font specifications
+axis_expansion = 0.1;
 label_font_size = 15;
-legend_font_size = 12;
 title_font_size = 15;
-font_name = 'Arial';
 figure_width = 700;
-figure_height = 700;
+figure_height = 350;
 
 %% Indexes for rewarded trials
 
@@ -61,18 +64,6 @@ for ii = 1:length(EMG_Names)
         all_trials_EMG{ii,1}(:,mm) = EMG{mm}(:, ii);
     end
 end
-    
-%% Calculating average EMG (Average Across trials)
-cross_trial_avg_EMG = struct([]);
-cross_trial_std_EMG = struct([]);
-for ii = 1:length(EMG_Names)
-    cross_trial_avg_EMG{ii,1} = zeros(length(EMG{1,1}),1);
-    cross_trial_std_EMG{ii,1} = zeros(length(EMG{1,1}),1);
-    for mm = 1:length(EMG{1,1})
-        cross_trial_avg_EMG{ii,1}(mm) = mean(all_trials_EMG{ii,1}(mm,:));
-        cross_trial_std_EMG{ii,1}(mm) = std(all_trials_EMG{ii,1}(mm,:));
-    end
-end
 
 %% Plot the individual EMG traces on the top
 
@@ -80,7 +71,6 @@ for ii = 1:length(EMG_Names)
 
     EMG_figure = figure;
     EMG_figure.Position = [300 100 figure_width figure_height];
-    subplot(211) % Top Plot
     hold on
 
     % Titling the plot
@@ -101,34 +91,17 @@ for ii = 1:length(EMG_Names)
                 'Marker', '.', 'Color', [0 0.5 0], 'Markersize', 15);
         end
         % Plot the EMG onset as red dots
-        plot(absolute_timing(EMG_onset_idx(pp,ii)), all_trials_EMG{ii,1}(EMG_onset_idx(pp,ii),pp), ...
-            'Marker', '.', 'Color', 'r', 'Markersize', 15);
+        if ~isnan(EMG_onset_idx(pp,ii))
+            plot(absolute_timing(EMG_onset_idx(pp,ii)), all_trials_EMG{ii,1}(EMG_onset_idx(pp,ii),pp), ...
+                'Marker', '.', 'Color', 'r', 'Markersize', 15);
+        end
 
     end % End of the individual trial loop
 
-    %% Plot the mean EMG on the bottom
-
-    subplot(212) % Bottom Plot
-    hold on
-    
-    % Labels
-    ylabel('EMG', 'FontSize', label_font_size);
-    xlabel('Time (sec.)', 'FontSize', label_font_size);
-
-    % Mean EMG
-    plot(absolute_timing(1:stop_idx), cross_trial_avg_EMG{ii,1}(1:stop_idx), ...
-        'LineWidth', 2, 'Color', 'k');
-
-    % Standard Deviation
-    plot(absolute_timing(1:stop_idx), cross_trial_avg_EMG{ii,1}(1:stop_idx) + cross_trial_std_EMG{ii,1}(1:stop_idx), ...
-        'LineWidth', 1, 'LineStyle','--', 'Color', 'r');
-    %plot(absolute_timing(1:stop_idx), cross_trial_avg_EMG{ii,1}(1:stop_idx) - cross_trial_std_EMG{ii,1}(1:stop_idx), ...
-    %    'LineWidth', 1, 'LineStyle','--', 'Color', 'r');
-
-    legend(sprintf('%s', EMG_Names{ii}), ... 
-            'NumColumns', 1, 'FontSize', legend_font_size, 'FontName', font_name, ...
-            'Location', 'NorthEast');
-    legend boxoff
+    if ~ischar(man_y_axis)
+        % Set the axis
+        ylim([man_y_axis(1),  man_y_axis(2) + axis_expansion])
+    end
 
 end % End of the muscle loop
 
@@ -136,7 +109,7 @@ end % End of the muscle loop
 if ~isequal(Save_Figs, 0)
     save_dir = 'C:\Users\rhpow\Desktop\';
     for ii = 1:numel(findobj('type','figure'))
-        fig_info = get(subplot(211),'title');
+        fig_info = get(gca,'title');
         save_title = get(fig_info, 'string');
         save_title = strrep(save_title, ':', '');
         save_title = strrep(save_title, 'vs.', 'vs');

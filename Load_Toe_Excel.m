@@ -1,8 +1,8 @@
-function [toe_rxn_time_excel, file_names] = Load_Toe_Excel(Subject, Task, State)
+function [toe_rxn_time_excel, file_names] = Load_Toe_Excel(Group, Subject, Task, State)
 %% Import the excel spreadsheets of the selected drug
 
 % Define where the excel spreadsheets are saved
-Base_Path = 'C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\';
+Base_Path = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\', Group, '\');
 
 % Identify all the excel files in the data path
 Excel_Path = strcat(Base_Path, '*.xlsx');
@@ -18,7 +18,11 @@ else
 end
 
 %% Find the excel files that are from the desired subject
-Excel_Subject = find(contains(Excel_Files_In_Path.name, Subject));
+if ~strcmp(Subject, 'All')
+    Excel_Subject = find(contains(Excel_Files_In_Path.name, Subject));
+else
+    Excel_Subject = (1:length(Excel_Files_In_Path.name));
+end
 
 %% Find the intersection of Subject & Task
 Excel_Choice = intersect(Excel_Task, Excel_Subject);
@@ -54,10 +58,9 @@ for xx = 1:length(Excel_Choice)
     % Subsample according to State
     if ~strcmp(State, 'All')
         State_idx = strcmp(temp_excel.State, State);
-        toe_rxn_time_excel = temp_excel(State_idx,:);
-    else
-        toe_rxn_time_excel = temp_excel;
+        temp_excel = temp_excel(State_idx,:);  
     end
+    toe_rxn_time_excel{cc,1} = temp_excel(:,:);
 
     % File Name
     file_names(cc,1) = strrep(Excel_File, '_', {' '});
@@ -67,8 +70,8 @@ for xx = 1:length(Excel_Choice)
 
 end
 
-%% Merge all the experiments if you selected 'All' for Task)
-if strcmp(Task, 'All')
+%% Merge all the experiments if you selected 'All' for Subject
+if strcmp(Subject, 'All')
 
     % Define the merged session table
     merged_session = struct([]);
@@ -80,12 +83,7 @@ if strcmp(Task, 'All')
         if isempty(toe_rxn_time_excel{xx})
             continue
         end
-        if ~iscell(toe_rxn_time_excel{xx}.drug_dose_mg_per_kg(1))
-            merged_session{1,1} = [merged_session{1,1}; toe_rxn_time_excel{xx}];
-        else
-            toe_rxn_time_excel{xx}.drug_dose_mg_per_kg = NaN(height(toe_rxn_time_excel{xx}), 1);
-            merged_session{1,1} = [merged_session{1,1}; toe_rxn_time_excel{xx}];
-        end
+        merged_session{1,1} = [merged_session{1,1}; toe_rxn_time_excel{xx}];
     end
 
     toe_rxn_time_excel = merged_session;

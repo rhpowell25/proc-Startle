@@ -1,15 +1,15 @@
-function Per_Trial_SIG_EMG(sig, State, muscle_group, Save_Figs)
+function Check_EMG_Onset(sig, State, muscle_group, Save_Figs)
 
 %% Display the function being used
-disp('Per Trial SIG EMG Function:');
+disp('Check EMG Onset Function:');
 
 %% Basic Settings, some variable extractions, & definitions
 
 % Do you want to plot the rewarded or failed trials ('R' or 'F')
-trial_choice = 'F';
+trial_choice = 'R';
 
-% Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
-EMG_Choice = 'Raw';
+% Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
+EMG_Choice = 'Rect';
 
 bin_width = sig.bin_width;
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.

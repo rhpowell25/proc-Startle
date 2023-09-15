@@ -2,15 +2,17 @@ clc
 clear
 
 params = struct( ...
-    'Subject', 'TP', ... % Subject Name
-    'Date', '20230614', ... % Select the date to convert (YYYYMMDD)
+    'Group', 'Control', ... & 'Control', 'SCI'
+    'Subject', 'HE', ... % Subject Name
+    'Test', 'StartMEP', ... % 'StartReact', 'MVC', 'FWave', 'StartMEP'
+    'Date', '20230906', ... % Select the date to convert (YYYYMMDD)
     'Subject_Side', 'Right', ... % What side of the body ('Left' or 'Right')
-    'Trial_Length', 5, ... % Sec.
-    'GoCue_Time', 1); % Sec.
+    'Trial_Length', 4, ... % Sec.
+    'GoCue_Time', 3); % Sec.
 
 base_dir = 'C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Toe_Startle';
-file_dir = strcat(base_dir, '\', params.Subject, '\', params.Date, '\RawFiles\');
-save_dir = strcat(base_dir, '\', params.Subject, '\', params.Date, '\');
+save_dir = strcat(base_dir, '\', params.Group, '\', params.Subject, '\', params.Date, '\');
+file_dir = strcat(save_dir, 'RawFiles\', params.Test, '\');
 open_file = strcat(file_dir, '*.mat');
 file = dir(open_file);
 

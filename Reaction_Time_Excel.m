@@ -1,8 +1,8 @@
-function Reaction_Time_Excel(Subjects, Dates, Save_Excel)
+function Reaction_Time_Excel(Group, Subjects, Dates, Save_Excel)
 
 %% Some of the analysis specifications
 
-Save_Path = 'C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\';
+Save_Path = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\', Group, '\');
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
 EMG_Choice = 'Raw';
@@ -11,7 +11,7 @@ EMG_Choice = 'Raw';
 trial_choice = 'R';
 
 % Initialize the output variables
-Tasks = {'AbH_Flex'; 'AbH_Abd'; 'TA'; 'SOL'};
+Tasks = {'AbH_Flex'; 'AbH_Abd'; 'Plantar'; 'TA'; 'SOL'};
 
 %% Loop through the different experiments
 for xx = 1:length(Dates)
@@ -20,7 +20,13 @@ for xx = 1:length(Dates)
     for jj = 1:length(Tasks)
     
         %% Load the signal file
-        [sig] = Load_SIG(Subjects{xx}, Dates{xx}, Tasks{jj});
+        [sig] = Load_SIG(Group, Subjects{xx}, Dates{xx}, Tasks{jj});
+
+        % Skip the file if unable to load
+        if ~isstruct(sig)
+            continue
+        end
+
         % Process the sig file
         [sig] = Process_SIG(sig);
 
@@ -28,7 +34,7 @@ for xx = 1:length(Dates)
         bin_width = sig.bin_width;
         
         % What muscle groups do you want to look at? ('ABH', 'TA', 'SOL', or 'All')
-        if contains(Tasks{jj}, 'Flex') || contains(Tasks{jj}, 'Abd')
+        if contains(Tasks{jj}, 'Flex') || contains(Tasks{jj}, 'Abd') || contains(Tasks{jj}, 'Plantar')
             muscle_group = 'ABH';
         else
             muscle_group = Tasks{jj};
