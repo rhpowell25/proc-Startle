@@ -1,22 +1,22 @@
-function [sig] = Load_SIG(Group, Subject, Date, Task)
+function [sig] = Load_SIG(Group, Subject, Date, Task, Muscle)
 
 %% Define the file location
-base_dir = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Toe_Startle\', Group, '\', Subject, '\', Date, '\');
-open_file = dir(strcat(base_dir, '*.mat'));
+base_dir = 'Z:\Lab Members\Henry\AbH Startle\';
+folder_dir = strcat(base_dir, Group, '\', Subject, '\', Date, '\');
+open_file = dir(strcat(folder_dir, '*.mat'));
 
 % Find the names of each file
-file_names = strings;
-for ii = 1:length(open_file)
-    file_names{ii} = open_file(ii).name;
-end
+file_names = {open_file.name};
 
 % Only look at the selected task
-task_idx = contains(file_names, Task);
-file_name = char(file_names(task_idx));
+Task_files = contains(file_names, Task);
+Muscle_files = contains(file_names, Muscle);
+file_idx = (Task_files & Muscle_files) == 1;
+file_name = char(file_names(file_idx));
 
 % Load the sig file
 try
-    load(strcat(base_dir, file_name), 'sig')
+    load(strcat(folder_dir, file_name), 'sig')
 catch
     disp('SIG file not found!')
     sig = NaN;

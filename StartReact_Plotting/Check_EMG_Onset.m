@@ -12,14 +12,19 @@ trial_choice = 'R';
 EMG_Choice = 'Rect';
 
 bin_width = sig.bin_width;
+
+% Rounding to remove floating point errors
+round_digit = abs(floor(log10(bin_width)));
+
+% Time of the go cue
+gocue_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_digit)); % Sec.
+gocue_idx = round(gocue_time/bin_width);
+
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to stop plotting
 stop_length = 2; % Sec.
 stop_idx = stop_length/bin_width;
-
-% Where will the gocue be plotted
-GoCue_idx = 1 / bin_width;
 
 % Font specifications
 label_font_size = 15;
@@ -90,8 +95,8 @@ for ii = 1:width(all_trials_EMG{ii})
         plot(absolute_timing(1:stop_idx), all_trials_EMG{pp}(1:stop_idx,ii))
 
         % Horizontal line indicating cutoff 
-        EMG_std = mean(all_trials_EMG{pp}(1:GoCue_idx,ii)) + ...
-            5*std(all_trials_EMG{pp}(1:GoCue_idx,ii));
+        EMG_std = mean(all_trials_EMG{pp}(1:gocue_idx,ii)) + ...
+            5*std(all_trials_EMG{pp}(1:gocue_idx,ii));
         line([absolute_timing(1) absolute_timing(stop_idx)], [EMG_std EMG_std], ... 
         'LineStyle','--', 'Color', 'k')
 

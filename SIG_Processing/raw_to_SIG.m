@@ -1,19 +1,19 @@
 function [sig] = raw_to_SIG(params)
 %% Extract the paramaters
 
-Group = params.Group;
 Subject = params.Subject;
-Test = params.Test;
 Date = params.Date;
 Subject_Side = params.Subject_Side;
 Task = params.Task;
-Trial_Length = params.Trial_Length;
+Muscle = params.Muscle;
 GoCue_Time = params.GoCue_Time;
 
-%% Load the signal file
+%% Load the signal file & extract some basic information
+[signal_file] = Load_Raw_SIG(params);
 
-[signal_file] = Load_Raw_SIG(Group, Subject, Date, Test, Task);
 file_name = signal_file.file_name;
+bin_width = signal_file.interval;
+trial_length = bin_width * double(signal_file.points);
 
 %% Extract trial numbers the signal file
 
@@ -39,7 +39,7 @@ trial_result = cell(length(trial_num),1);
 for ii = 1:length(trial_num)
     trial_start(ii) = signal_file.frameinfo(ii).start;
     trial_gocue(ii) = trial_start(ii) + GoCue_Time;
-    trial_end(ii) = trial_start(ii) + Trial_Length;
+    trial_end(ii) = trial_start(ii) + trial_length;
     trial_result{ii} = 'R';
 end
 
@@ -63,7 +63,7 @@ Trial_Table.State = States;
 %% Extract the EMG from the signal file
 
 % How many channels do you want to extract
-EMG_length = 4;
+EMG_length = 3;
 
 % Extract the EMG names
 EMG_names = struct([]);
@@ -77,7 +77,7 @@ for pp = 1:length(trial_num)
 end
 
 % Sampling rate
-samp_rate = length(raw_EMG{1}) / Trial_Length;
+samp_rate = double(signal_file.points) / trial_length;
 
 %% Extract the force from the signal file
 for ii = 1:length(signal_file.chaninfo)
@@ -104,12 +104,11 @@ sig(1).meta = struct([]);
 sig.meta(1).rawFileName = file_name(1:end-4);
 sig.meta.date = Date;
 sig.meta.task = Task;
-sig.meta.test = Test;
+sig.meta.muscle = Muscle;
 sig.meta.subject = Subject;
 sig.meta.side = Subject_Side;
 
 % Bin width
-bin_width = Trial_Length / length(raw_EMG{1});
 sig.bin_width = bin_width;
 
 % Truth values
@@ -124,6 +123,12 @@ end
 % Trial info
 sig.trial_info_table_header = table_header;
 sig.trial_info_table = table2cell(Trial_Table);
+
+% Add the trial information arrays
+sig.trial_gocue_time = trial_gocue;
+sig.trial_start_time = trial_start;
+sig.trial_end_time = trial_end;
+sig.trial_result = char(trial_result);
 
 % EMG names
 sig.EMG_names = EMG_names;

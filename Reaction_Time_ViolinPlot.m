@@ -25,17 +25,17 @@ if ~isequal(Save_Figs, 0)
 end
 
 %% Initialize the output variables
-Task_Name = {'AbH_Flex'; 'TA'; 'SOL'};
-
+%Task_Name = {'AbH_Flex'; 'TA'; 'SOL'};
+Muscle_Name = {'ABH'};
 title_strings = struct([]);
 
 rxn_time = struct([]);
 rxn_state = struct([]);
 
 %% Look through all the tasks
-for ii = 1:length(Task_Name)
+for ii = 1:length(Muscle_Name)
 
-    [rxn_time_excel, ~] = Load_Toe_Excel(Group, Subject, Task_Name{ii}, 'All');
+    [rxn_time_excel, ~] = Load_Toe_Excel(Group, Subject, Muscle_Name{ii}, 'All');
     
     if ~isempty(rxn_time_excel)
         rxn_time{ii,1} = rxn_time_excel{1,1}.rxn_time;
@@ -49,7 +49,7 @@ end
 %% Plot the violin plot
 
 if isequal(Plot_Figs, 1)
-    for ii = 1:length(Task_Name)
+    for ii = 1:length(Muscle_Name)
 
         if isnan(rxn_time{ii,1})
             continue
@@ -64,7 +64,7 @@ if isequal(Plot_Figs, 1)
         y_max = max(rxn_time{ii});
         
         % Title
-        Task_title = Task_Name{ii};
+        Task_title = Muscle_Name{ii};
         title_strings{ii} = (sprintf('EMG Reaction Times: %s', Task_title));
         sgtitle(title_strings{ii}, 'FontSize', title_font_size, 'Interpreter', 'none');
         

@@ -1,8 +1,8 @@
-function [toe_rxn_time_excel, file_names] = Load_Toe_Excel(Group, Subject, Task, State)
+function [toe_rxn_time_excel, file_names] = Load_Toe_Excel(Group, Subject, Muscle, State)
 %% Import the excel spreadsheets of the selected drug
 
 % Define where the excel spreadsheets are saved
-Base_Path = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\', Group, '\');
+Base_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
 
 % Identify all the excel files in the data path
 Excel_Path = strcat(Base_Path, '*.xlsx');
@@ -11,8 +11,8 @@ Excel_Files = dir(Excel_Path);
 Excel_Files_In_Path = struct2table(Excel_Files(~([Excel_Files.isdir])));
 
 %% Find the excel files that use the desired task
-if ~strcmp(Task, 'All')
-    Excel_Task = find(contains(Excel_Files_In_Path.name, Task));
+if ~strcmp(Muscle, 'All')
+    Excel_Task = find(contains(Excel_Files_In_Path.name, Muscle));
 else
     Excel_Task = (1:length(Excel_Files_In_Path.name));
 end

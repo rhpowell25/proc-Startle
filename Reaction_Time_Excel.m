@@ -2,7 +2,7 @@ function Reaction_Time_Excel(Group, Subjects, Dates, Save_Excel)
 
 %% Some of the analysis specifications
 
-Save_Path = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\', Group, '\');
+Save_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
 EMG_Choice = 'Raw';
@@ -11,16 +11,17 @@ EMG_Choice = 'Raw';
 trial_choice = 'R';
 
 % Initialize the output variables
-Tasks = {'AbH_Flex'; 'AbH_Abd'; 'Plantar'; 'TA'; 'SOL'};
+Muscle = {'ABH'};
+%Tasks = {'AbH_Flex'; 'AbH_Abd'; 'Plantar'; 'TA'; 'SOL'};
 
 %% Loop through the different experiments
 for xx = 1:length(Dates)
 
     %% Loop through each task
-    for jj = 1:length(Tasks)
+    for jj = 1:length(Muscle)
     
         %% Load the signal file
-        [sig] = Load_SIG(Group, Subjects{xx}, Dates{xx}, Tasks{jj});
+        [sig] = Load_SIG(Group, Subjects{xx}, Dates{xx}, 'StartReact', Muscle);
 
         % Skip the file if unable to load
         if ~isstruct(sig)
@@ -32,13 +33,6 @@ for xx = 1:length(Dates)
 
         % Bin size
         bin_width = sig.bin_width;
-        
-        % What muscle groups do you want to look at? ('ABH', 'TA', 'SOL', or 'All')
-        if contains(Tasks{jj}, 'Flex') || contains(Tasks{jj}, 'Abd') || contains(Tasks{jj}, 'Plantar')
-            muscle_group = 'ABH';
-        else
-            muscle_group = Tasks{jj};
-        end
 
         %% Indexes for rewarded trials
 
@@ -76,6 +70,7 @@ for xx = 1:length(Dates)
         end
         
         % Use only the selected EMG
+        muscle_group = 'ABH';
         if ~strcmp(muscle_group, 'All')
             EMG_name_idx = find(strcmp(sig.EMG_names, muscle_group));
         else
@@ -114,7 +109,7 @@ for xx = 1:length(Dates)
         if isequal(Save_Excel, 1)
     
             % Define the file name
-            filename = char(strcat(Dates{xx,1}, '_', Subjects{xx,1}, '_', Tasks{jj}));
+            filename = char(strcat(Dates{xx,1}, '_', Subjects{xx,1}, '_', Muscle{jj}));
     
             % Save the file
             if ~exist(Save_Path, 'dir')

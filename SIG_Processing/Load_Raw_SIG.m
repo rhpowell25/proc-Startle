@@ -1,20 +1,27 @@
-function [signal_file] = Load_Raw_SIG(Group, Subject, Date, Test, Task)
+function [signal_file] = Load_Raw_SIG(params)
+
+%% Extract the paramaters
+
+Group = params.Group;
+Subject = params.Subject;
+Date = params.Date;
+Task = params.Task;
+Muscle = params.Muscle;
 
 %% Define the file location
-base_dir = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Toe_Startle\', ...
+base_dir = strcat('Z:\Lab Members\Henry\AbH Startle\', ...
     Group, '\', Subject, '\', Date, '\');
-file_dir = strcat(base_dir, '\RawFiles\', Test, '\');
+file_dir = strcat(base_dir, 'RawFiles\');
 open_file = dir(strcat(file_dir, '*.mat'));
 
 % Find the names of each file
-file_names = strings;
-for ii = 1:length(open_file)
-    file_names{ii} = open_file(ii).name;
-end
+file_names = {open_file.name};
 
 % Only look at the selected task
-task_idx = contains(file_names, Task);
-file_name = char(file_names(task_idx));
+Task_files = contains(file_names, Task);
+Muscle_files = contains(file_names, Muscle);
+file_idx = (Task_files & Muscle_files) == 1;
+file_name = char(file_names(file_idx));
 
 % Load the file
 signal_file = load(strcat(file_dir, '\', file_name));

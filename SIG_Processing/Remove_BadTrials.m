@@ -6,13 +6,13 @@ bad_trials = [];
 
 %% SCI
 if strcmp(sig.meta.subject, 'PM')
-    if strcmp(sig.meta.task, 'AbH_Flex')
-        bad_trials = [3; 4; 8; 9; 12; 14; 15; 22; 23; 40; 41; 43];
+    if strcmp(sig.meta.task, 'ABH')
+        bad_trials = [3; 4; 8; 9; 12; 14; 15; 22; 23; 40; 41; 43; 46];
     end
 end
 
 if strcmp(sig.meta.subject, 'JW')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [13; 20; 50; 60];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -24,7 +24,7 @@ if strcmp(sig.meta.subject, 'JW')
 end
 
 if strcmp(sig.meta.subject, 'MR')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [3; 5; 7; 8; 9; 10; 11; 12; 13; 26; 31; 36; 42; 46; 48; 52; 56; 59];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -49,7 +49,7 @@ if strcmp(sig.meta.subject, 'HP')
 end
 
 if strcmp(sig.meta.subject, 'AW')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [1; 3; 6; 12; 13; 15; 32; 35; 36; 56; 57; 59];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -64,7 +64,7 @@ if strcmp(sig.meta.subject, 'AW')
 end
 
 if strcmp(sig.meta.subject, 'TP')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [2; 29; 30; 31; 32; 33; 36; 38; 40; 41; 46; 55; 59];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -76,7 +76,7 @@ if strcmp(sig.meta.subject, 'TP')
 end
 
 if strcmp(sig.meta.subject, 'GaM')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [1; 2; 11; 13; 16; 20; 22; 33; 39; 42; 43; 45; 46; 49; 53; 57; 60];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -91,7 +91,7 @@ if strcmp(sig.meta.subject, 'GaM')
 end
 
 if strcmp(sig.meta.subject, 'JA')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [3; 5; 7; 10; 26; 33; 35; 40; 43; 45; 46; 51; 58; 59];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -106,7 +106,7 @@ if strcmp(sig.meta.subject, 'JA')
 end
 
 if strcmp(sig.meta.subject, 'ST')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [3; 12; 14; 26];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -121,7 +121,7 @@ if strcmp(sig.meta.subject, 'ST')
 end
 
 if strcmp(sig.meta.subject, 'HK')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = [2; 4; 6; 7; 8; 15; 20; 29; 32; 47];
     end
     if strcmp(sig.meta.task, 'AbH_Abd')
@@ -136,7 +136,7 @@ if strcmp(sig.meta.subject, 'HK')
 end
 
 if strcmp(sig.meta.subject, 'EB')
-    if strcmp(sig.meta.task, 'AbH_Flex')
+    if strcmp(sig.meta.task, 'ABH')
         bad_trials = 2;
     end
     if strcmp(sig.meta.task, 'AbH_Abd')

@@ -1,19 +1,16 @@
-function Avg_SIG_EMG(sig, State, muscle_group, Save_Figs)
+function Avg_StartReact(sig, State, muscle_group, Save_Figs)
 
 %% Display the function being used
 disp('Average sig EMG Function:');
 
 %% Basic Settings, some variable extractions, & definitions
 
+% Extract the per trial reaction times
+[per_trial_EMG, EMG_Names] = Trial_StartReact(sig, State, muscle_group, 0, 0);
+
 % Do you want to manually set the y-axis?
 man_y_axis = 'No';
 %man_y_axis = [0, 0.2];
-
-% Do you want to plot the rewarded or failed trials ('R' or 'F')
-trial_choice = 'R';
-
-% Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
-EMG_Choice = 'Proc';
 
 Task = strrep(sig.meta.task, '_', ' ');
 bin_width = sig.bin_width;
@@ -32,45 +29,18 @@ font_name = 'Arial';
 figure_width = 700;
 figure_height = 350;
 
-%% Indexes for rewarded trials
-
-% Convert to the trial table
-matrix_variables = sig.trial_info_table_header';
-trial_info_table = cell2table(sig.trial_info_table);
-trial_info_table.Properties.VariableNames = matrix_variables;
-
-% Indexes for rewarded trials
-if strcmp(State, 'All')
-    rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
-else
-    rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice) & ...
-        strcmp(trial_info_table.State, State));
-end
-
-%% Extract the EMG & find its onset
-[EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
-
 %% Define the absolute timing
-absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
-
-%% Putting all succesful trials in one array
-all_trials_EMG = struct([]);
-for ii = 1:length(EMG_Names)
-    all_trials_EMG{ii,1} = zeros(length(EMG{1,1}),length(EMG));
-    for mm = 1:length(EMG)
-        all_trials_EMG{ii,1}(:,mm) = EMG{mm}(:, ii);
-    end
-end
+absolute_timing = linspace(0, trial_length, length(sig.raw_EMG{1,1}(:,1)));
     
 %% Calculating average EMG (Average Across trials)
 cross_trial_avg_EMG = struct([]);
 cross_trial_std_EMG = struct([]);
 for ii = 1:length(EMG_Names)
-    cross_trial_avg_EMG{ii,1} = zeros(length(EMG{1,1}),1);
-    cross_trial_std_EMG{ii,1} = zeros(length(EMG{1,1}),1);
-    for mm = 1:length(EMG{1,1})
-        cross_trial_avg_EMG{ii,1}(mm) = mean(all_trials_EMG{ii,1}(mm,:));
-        cross_trial_std_EMG{ii,1}(mm) = std(all_trials_EMG{ii,1}(mm,:));
+    cross_trial_avg_EMG{ii,1} = zeros(length(per_trial_EMG{1,1}),1);
+    cross_trial_std_EMG{ii,1} = zeros(length(per_trial_EMG{1,1}),1);
+    for mm = 1:length(per_trial_EMG{1,1})
+        cross_trial_avg_EMG{ii,1}(mm) = mean(per_trial_EMG{ii,1}(mm,:));
+        cross_trial_std_EMG{ii,1}(mm) = std(per_trial_EMG{ii,1}(mm,:));
     end
 end
 
@@ -112,8 +82,6 @@ for ii = 1:length(EMG_Names)
     % Standard Deviation
     plot(absolute_timing(1:stop_idx), cross_trial_avg_EMG{ii,1}(1:stop_idx) + cross_trial_std_EMG{ii,1}(1:stop_idx), ...
         'LineWidth', 1, 'LineStyle','--', 'Color', 'r');
-    %plot(absolute_timing(1:stop_idx), cross_trial_avg_EMG{ii,1}(1:stop_idx) - cross_trial_std_EMG{ii,1}(1:stop_idx), ...
-    %    'LineWidth', 1, 'LineStyle','--', 'Color', 'r');
     
     legend(sprintf('%s', EMG_Names{ii}), ... 
             'NumColumns', 1, 'FontSize', legend_font_size, 'FontName', font_name, ...

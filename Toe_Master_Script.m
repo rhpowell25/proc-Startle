@@ -6,14 +6,16 @@ close all
 % Group Name ('Control', 'SCI')
 Group = 'SCI';
 % Subject Name
-Subject = 'PM';
+Subject = 'SS';
 % Select the date to analyze (YYYYMMDD)
-Date = '20230909';
-% What Task do you want to load? ('AbH_Flex', 'StartMEP', 'Fwaves')
-Task = 'Fwave';
+Date = '20230919';
+% What Task do you want to load? ('StartReact', 'StartMEP', 'FWave')
+Task = 'StartReact';
+% What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
+Muscle = 'ABH';
 
 % Load the sig file
-[sig] = Load_SIG(Group, Subject, Date, Task);
+[sig] = Load_SIG(Group, Subject, Date, Task, Muscle);
 % Process the sig file
 [sig] = Process_SIG(sig);
 
@@ -22,7 +24,7 @@ Task = 'Fwave';
 % Decide whether or not to plot (1 = Yes; 0 = No)
 Plot_Figs = 1;
 % Save the figures to desktop? ('pdf', 'png', 'fig', 0 = no)
-Save_Figs = 0;
+Save_Figs = 'png';
 % What muscle groups do you want to look at? ('ABH', 'TA', 'SOL', 'QUAD', or 'All')
 muscle_group = 'ABH';
 
@@ -30,26 +32,33 @@ muscle_group = 'ABH';
 % StartReact ('F', 'F+s', 'F+S')
 % F-Waves ('Fwaves')
 % StartMEP ('MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms')
-State = 'Fwaves';
+State = 'MEP+100ms';
 
-%% Run the EMG Plotting Functions
-
-% Plot MEP's
-[peaktopeak_MEP] = StartMEP(sig, muscle_group, State, Plot_Figs, Save_Figs);
+%% F-Wave Plotting
 
 % Plot F-Waves
 [peaktopeak_FWave] = F_Wave(sig, muscle_group, Plot_Figs, Save_Figs);
+
+%% Start MEP Plotting
+
+% Per Trial MEP's
+[~, ~] = Trial_StartMEP(sig, State, muscle_group, Plot_Figs, Save_Figs);
+% Average MEP's
+[peaktopeak_MEP] = Avg_StartMEP(sig, State, muscle_group, Save_Figs);
+% Overlap MEP plotting
+Overlap_StartMEP(sig, muscle_group, Save_Figs)
+
+%% Start React Plotting
 
 % Check that the onset times make sense
 Check_EMG_Onset(sig, State, muscle_group, Save_Figs)
 
 % Per Trial EMG
-Trial_SIG_EMG(sig, State, muscle_group, Save_Figs)
+[~, ~] = Trial_StartReact(sig, State, muscle_group, Plot_Figs, Save_Figs);
 % Average EMG
-Avg_SIG_EMG(sig, State, muscle_group, Save_Figs)
-
+Avg_StartReact(sig, State, muscle_group, Save_Figs)
 % Overlap EMG plotting
-OverlapSIGEMG(sig, muscle_group, Save_Figs)
+Overlap_StartReact(sig, muscle_group, Save_Figs)
 
 %% Run the force plotting functions
 
@@ -77,7 +86,7 @@ for ii = 1:length(Subjects)
 end
 
 % Violin plot of Δ reaction time in each subject (Comparing Conditions)
-Reaction_Time_ViolinPlot(Group, 'All', Plot_Figs, Save_Figs);
+Reaction_Time_ViolinPlot(Group, Subject, Plot_Figs, Save_Figs);
 for ii = 1:length(Subjects)
     Reaction_Time_ViolinPlot(Group, Subjects{ii}, Plot_Figs, Save_Figs);
 end

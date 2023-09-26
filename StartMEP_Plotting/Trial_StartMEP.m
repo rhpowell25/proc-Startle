@@ -1,17 +1,13 @@
-function [peaktopeak_MEP] = StartMEP(sig, muscle_group, State, Plot_Figs, Save_Figs)
+function [per_trial_EMG, EMG_Names] = Trial_StartMEP(sig, State, muscle_group, Plot_Figs, Save_Figs)
 
 %% Display the function being used
-disp('Startled MEP Function:');
+disp('Per Trial Startled MEP Function:');
 
 %% Basic Settings, some variable extractions, & definitions
 
-% Time of stimulus & time after stimulus artifact
-stim_time = 3; % Sec.
-array_length = 0.125; % Sec.
-
 % Do you want to manually set the y-axis?
-man_y_axis = 'No';
-%man_y_axis = [-2, 3];
+%man_y_axis = 'No';
+man_y_axis = [-1.5, 1];
 
 % Do you want to include the stimulus artifact ('Yes', 'No')
 stim_art = 'No';
@@ -22,7 +18,19 @@ trial_choice = 'R';
 % Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
 EMG_Choice = 'Raw';
 
+% Title info
+Subject = sig.meta.subject;
+
+% Bin width
 bin_width = sig.bin_width;
+
+% Rounding to remove floating point errors
+round_digit = abs(floor(log10(bin_width)));
+
+% Time of stimulus & time after stimulus artifact
+stim_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_digit)); % Sec.
+array_length = 0.125; % Sec.
+
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to start & stop plotting
@@ -53,8 +61,12 @@ trial_info_table = cell2table(sig.trial_info_table);
 trial_info_table.Properties.VariableNames = matrix_variables;
 
 % Indexes for rewarded trials
-rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice) & ...
-    strcmp(trial_info_table.State, State));
+if strcmp(State, 'All')
+    rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+else
+    rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice) & ...
+        strcmp(trial_info_table.State, State));
+end
 
 %% Extract the EMG
 [EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
@@ -70,14 +82,14 @@ rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice) & ...
 absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
 
 %% Pulling all the trials & finding their peak to peak amplitudes
-all_trials_EMG = struct([]);
+per_trial_EMG = struct([]);
 for ii = 1:length(EMG_Names)
-    all_trials_EMG{ii,1} = zeros(length(EMG{1,1}(start_idx:stop_idx, 1)), length(EMG));
+    per_trial_EMG{ii,1} = zeros(length(EMG{1,1}(:, 1)), length(EMG));
     peaktopeak_MEP = NaN(length(EMG), 1);
     for mm = 1:length(EMG)
-        all_trials_EMG{ii,1}(:,mm) = EMG{mm}(start_idx:stop_idx, ii);
+        per_trial_EMG{ii,1}(:,mm) = EMG{mm}(:, ii);
         if strcmp(stim_art, 'No')
-            peaktopeak_MEP(mm,1) = peak2peak(all_trials_EMG{ii,1}(:,mm));
+            peaktopeak_MEP(mm,1) = peak2peak(per_trial_EMG{ii,1}(start_idx:stop_idx,mm));
         end
     end
 end
@@ -90,17 +102,17 @@ if isequal(Plot_Figs, 1)
         EMG_figure = figure;
         EMG_figure.Position = [300 100 figure_width figure_height];
         hold on
-    
+
         % Titling the plot
-        EMG_title = strcat(State, {' '}, '[', EMG_Names{ii}, ']');
-        title(strcat('EMG MEPs:', {' '}, EMG_title), 'FontSize', title_font_size)
+        EMG_title = strcat('MEPs:', {' '}, Subject, {' '}, State, {' '}, '[', EMG_Names{ii}, ']');
+        title(EMG_title, 'FontSize', title_font_size)
     
         % Labels
         ylabel('EMG (mV)', 'FontSize', label_font_size);
         xlabel('Time (sec.)', 'FontSize', label_font_size);
     
-        for pp = 1:width(all_trials_EMG{ii})
-            plot(absolute_timing(start_idx:stop_idx), all_trials_EMG{ii}(:,pp))
+        for pp = 1:width(per_trial_EMG{ii})
+            plot(absolute_timing(start_idx:stop_idx), per_trial_EMG{ii}(start_idx:stop_idx,pp))
         end % End of the individual trial loop
     
         % Set the axis
@@ -127,10 +139,11 @@ end
 
 %% Define the save directory & save the figures
 if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
+    save_dir = 'C:\Users\rpowell\Desktop\';
     for ii = 1:numel(findobj('type','figure'))
         fig_info = get(gca,'title');
         save_title = get(fig_info, 'string');
+        save_title = strcat('Per-Trial', {' '}, save_title);
         save_title = strrep(save_title, ':', '');
         save_title = strrep(save_title, 'vs.', 'vs');
         save_title = strrep(save_title, 'mg.', 'mg');

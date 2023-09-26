@@ -23,10 +23,12 @@ if strcmp(Group, 'Control')
     Dates{8,1} = '20230623';
 end
 if strcmp(Group, 'SCI')
-    Names{1,1} = 'PM';
+    Names{1,1} = 'SS';
+    %Names{1,1} = 'PM';
     %Names{1,1} = 'JW';
     %Names{2,1} = 'MR';
-    Dates{1,1} = '20230909';
+    Dates{1,1} = '20230919';
+    %Dates{1,1} = '20230909';
     %Dates{1,1} = '20230830';
     %Dates{2,1} = '20230830';
 end

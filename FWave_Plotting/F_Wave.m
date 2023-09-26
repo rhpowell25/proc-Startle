@@ -5,35 +5,39 @@ disp('F-Wave Function:');
 
 %% Basic Settings, some variable extractions, & definitions
 
-% Time of stimulus & time after M-Max
-stim_time = 0.5; % Sec.
-post_M_Max = 0.03; % Sec.
-array_length = 0.1; % Sec.
-
 % Do you want to manually set the y-axis?
 man_y_axis = 'No';
 %man_y_axis = [-2, 3];
 
 % Do you want to include the M-Max ('Yes', 'No')
-M_Max = 'Yes';
-
-% Do you want to plot the rewarded or failed trials ('R' or 'F')
-trial_choice = 'R';
+M_Max = 'No';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
 EMG_Choice = 'Raw';
 
+Subject = sig.meta.subject;
+
+% Bin width and baseline indices
 bin_width = sig.bin_width;
+
+% Rounding to remove floating point errors
+round_digit = abs(floor(log10(bin_width)));
+
+% Time of stimulus & time after M-Max
+stim_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_digit)); % Sec.
+post_M_Max_time = 0.03; % Sec.
+F_Wave_length = 0.1; % Sec.
+
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to start & stop plotting
 if strcmp(M_Max, 'Yes')
     start_time = stim_time + 0.0012; % Sec.
 else
-    start_time = stim_time + post_M_Max; % Sec.
+    start_time = stim_time + post_M_Max_time; % Sec.
 end
 start_idx = round(start_time/bin_width);
-stop_time = start_time + array_length; % Sec.
+stop_time = start_time + F_Wave_length; % Sec.
 stop_idx = round(stop_time/bin_width);
 
 % Font specifications
@@ -45,18 +49,14 @@ figure_height = 350;
 legend_font_size = 15;
 font_name = 'Arial';
 
-%% Indexes for rewarded trials
+%% Indexes for persistant trials
 
-% Convert to the trial table
-matrix_variables = sig.trial_info_table_header';
-trial_info_table = cell2table(sig.trial_info_table);
-trial_info_table.Properties.VariableNames = matrix_variables;
+[persistant_idxs] = F_Wave_Persistance(sig);
 
-% Indexes for rewarded trials
-rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+FWave_persistance = (length(persistant_idxs) / length(sig.trial_result))*100;
 
 %% Extract the EMG
-[EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
+[EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, persistant_idxs);
 
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
@@ -82,12 +82,10 @@ if isequal(Plot_Figs, 1)
         EMG_figure = figure;
         EMG_figure.Position = [300 100 figure_width figure_height];
         hold on
-     
-        
     
         % Titling the plot
-        EMG_title = EMG_Names{ii};
-        title(sprintf('EMG F-Waves: %s', EMG_title), 'FontSize', title_font_size)
+        EMG_title = strcat('F-Waves: ', {' '}, Subject, {' '}, '[', EMG_Names{ii}, ']');
+        title(EMG_title, 'FontSize', title_font_size)
     
         % Labels
         ylabel('EMG (mV)', 'FontSize', label_font_size);
@@ -103,11 +101,23 @@ if isequal(Plot_Figs, 1)
         if ~ischar(man_y_axis)
             ylim([man_y_axis(1),  man_y_axis(2) + axis_expansion])
         end
-
-        % Annotation of the mean peak to peak amplitude
+        
+        % Annotations
         if strcmp(M_Max, 'No')
-            avg_peaktopeak = round(mean(peaktopeak_FWave), 2);
+            % Annotation of the F-Wave peristance
+            FWave_persistance = round(mean(FWave_persistance), 2);
             legend_dims = [0.555 0.425 0.44 0.44];
+            persistance_string = strcat('persistance =', {' '}, mat2str(FWave_persistance), '%');
+            legend_string = {char(persistance_string)};
+            ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
+                'FitBoxToText', 'on', 'verticalalignment', 'top', ...
+                'EdgeColor','none', 'horizontalalignment', 'center');
+            ann_legend.FontSize = legend_font_size;
+            ann_legend.FontName = font_name;
+        
+            % Annotation of the mean peak to peak amplitude
+            avg_peaktopeak = round(mean(peaktopeak_FWave), 2);
+            legend_dims = [0.555 0.325 0.44 0.44];
             pktopk_count_string = strcat('pk-pk =', {' '}, mat2str(avg_peaktopeak), {' '}, 'mV');
             legend_string = {char(pktopk_count_string)};
             ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
@@ -122,7 +132,7 @@ end
 
 %% Define the save directory & save the figures
 if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
+    save_dir = 'C:\Users\rpowell\Desktop\';
     for ii = 1:numel(findobj('type','figure'))
         fig_info = get(gca,'title');
         save_title = get(fig_info, 'string');

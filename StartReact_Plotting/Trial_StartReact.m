@@ -1,7 +1,7 @@
-function Trial_SIG_EMG(sig, State, muscle_group, Save_Figs)
+function [per_trial_EMG, EMG_Names] = Trial_StartReact(sig, State, muscle_group, Plot_Figs, Save_Figs)
 
 %% Display the function being used
-disp('Average sig EMG Function:');
+disp('Per Trial StartReact Function:');
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -13,17 +13,31 @@ man_y_axis = 'No';
 trial_choice = 'R';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
-EMG_Choice = 'Proc';
+EMG_Choice = 'Rect';
 
+Subject = sig.meta.subject;
+
+% Bin width and baseline indices
 bin_width = sig.bin_width;
+
+% Rounding to remove floating point errors
+round_digit = abs(floor(log10(bin_width)));
+
+% Time of the go cue
+gocue_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_digit)); % Sec.
+gocue_idx = round(gocue_time/bin_width);
+
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
-% When do you want to stop plotting
-stop_time = 3; % Sec.
+% When do you want to start and stop plotting
+start_time = 0; % Sec.
+if isequal(start_time, 0)
+    start_idx = 1;
+else
+    start_idx = start_time/bin_width;
+end
+stop_time = 5; % Sec.
 stop_idx = stop_time/bin_width;
-
-% Where will the gocue be plotted
-GoCue_idx = 1 / bin_width;
 
 % Font specifications
 axis_expansion = 0.1;
@@ -57,53 +71,56 @@ end
 absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
 
 %% Putting all succesful trials in one array
-all_trials_EMG = struct([]);
+per_trial_EMG = struct([]);
 for ii = 1:length(EMG_Names)
-    all_trials_EMG{ii,1} = zeros(length(EMG{1,1}),length(EMG));
+    per_trial_EMG{ii,1} = zeros(length(EMG{1,1}),length(EMG));
     for mm = 1:length(EMG)
-        all_trials_EMG{ii,1}(:,mm) = EMG{mm}(:, ii);
+        per_trial_EMG{ii,1}(:,mm) = EMG{mm}(:, ii);
     end
 end
 
 %% Plot the individual EMG traces on the top
 
-for ii = 1:length(EMG_Names)
-
-    EMG_figure = figure;
-    EMG_figure.Position = [300 100 figure_width figure_height];
-    hold on
-
-    % Titling the plot
-    EMG_title = EMG_Names{ii};
-    title(sprintf('EMG [%s] Reaction Time: %s', State, EMG_title), 'FontSize', title_font_size)
-
-    % Labels
-    ylabel('EMG', 'FontSize', label_font_size);
-    xlabel('Time (sec.)', 'FontSize', label_font_size);
-
-    for pp = 1:width(all_trials_EMG{ii})
-
-        plot(absolute_timing(1:stop_idx), all_trials_EMG{ii}(1:stop_idx,pp))
-
-        % Plot the go-cues as dark green dots
-        if ~isempty(all_trials_EMG{ii,1}(GoCue_idx,pp))
-            plot(1, all_trials_EMG{ii,1}(GoCue_idx(1),pp), ...
-                'Marker', '.', 'Color', [0 0.5 0], 'Markersize', 15);
+if isequal(Plot_Figs, 1)
+    for ii = 1:length(EMG_Names)
+    
+        EMG_figure = figure;
+        EMG_figure.Position = [300 100 figure_width figure_height];
+        hold on
+    
+        % Titling the plot
+        EMG_title = strcat('Reaction Time:', {' '}, Subject, {' '}, '[', State, ']', {' '}, EMG_Names{ii});
+        title(EMG_title, 'FontSize', title_font_size)
+    
+        % Labels
+        ylabel('EMG', 'FontSize', label_font_size);
+        xlabel('Time (sec.)', 'FontSize', label_font_size);
+    
+        for pp = 1:width(per_trial_EMG{ii})
+    
+            plot(absolute_timing(start_idx:stop_idx), per_trial_EMG{ii}(start_idx:stop_idx,pp))
+    
+            % Plot the go-cues as dark green dots
+            if ~isempty(per_trial_EMG{ii,1}(gocue_idx,pp))
+                plot(1, per_trial_EMG{ii,1}(gocue_idx(1),pp), ...
+                    'Marker', '.', 'Color', [0 0.5 0], 'Markersize', 15);
+            end
+            % Plot the EMG onset as red dots
+            if ~isnan(EMG_onset_idx(pp,ii))
+                plot(absolute_timing(EMG_onset_idx(pp,ii)), per_trial_EMG{ii,1}(EMG_onset_idx(pp,ii),pp), ...
+                    'Marker', '.', 'Color', 'r', 'Markersize', 15);
+            end
+            %pause(0.5)
+    
+        end % End of the individual trial loop
+    
+        if ~ischar(man_y_axis)
+            % Set the axis
+            ylim([man_y_axis(1),  man_y_axis(2) + axis_expansion])
         end
-        % Plot the EMG onset as red dots
-        if ~isnan(EMG_onset_idx(pp,ii))
-            plot(absolute_timing(EMG_onset_idx(pp,ii)), all_trials_EMG{ii,1}(EMG_onset_idx(pp,ii),pp), ...
-                'Marker', '.', 'Color', 'r', 'Markersize', 15);
-        end
-
-    end % End of the individual trial loop
-
-    if ~ischar(man_y_axis)
-        % Set the axis
-        ylim([man_y_axis(1),  man_y_axis(2) + axis_expansion])
-    end
-
-end % End of the muscle loop
+    
+    end % End of the muscle loop
+end
 
 %% Define the save directory & save the figures
 if ~isequal(Save_Figs, 0)
