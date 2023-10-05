@@ -9,9 +9,9 @@ Task = params.Task;
 Muscle = params.Muscle;
 
 %% Define the file location
-base_dir = strcat('Z:\Lab Members\Henry\AbH Startle\', ...
-    Group, '\', Subject, '\', Date, '\');
-file_dir = strcat(base_dir, 'RawFiles\');
+base_dir = strcat('Z:\Lab Members\Henry\AbH Startle\Data\', ...
+    Group, '\', Subject, '\RawFiles\');
+file_dir = strcat(base_dir, Date, '\');
 open_file = dir(strcat(file_dir, '*.mat'));
 
 % Find the names of each file

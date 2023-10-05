@@ -1,16 +1,20 @@
-function [peaktopeak_FWave] = F_Wave(sig, muscle_group, Plot_Figs, Save_Figs)
+function [peaktopeak_amp] = Periph_Stim(sig, muscle_group, Wave_Choice, Plot_Figs, Save_Figs)
 
 %% Display the function being used
-disp('F-Wave Function:');
+disp('Peripheral Nerve Stimulation Function:');
+
+%% Check for common sources of errors
+if ~isstruct(sig)
+    disp('NaN Sig File!')
+    peaktopeak_amp = NaN;
+    return
+end
 
 %% Basic Settings, some variable extractions, & definitions
 
 % Do you want to manually set the y-axis?
 man_y_axis = 'No';
 %man_y_axis = [-2, 3];
-
-% Do you want to include the M-Max ('Yes', 'No')
-M_Max = 'No';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
 EMG_Choice = 'Raw';
@@ -31,14 +35,22 @@ F_Wave_length = 0.1; % Sec.
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to start & stop plotting
-if strcmp(M_Max, 'Yes')
+if strcmp(Wave_Choice, 'M')
     start_time = stim_time + 0.0012; % Sec.
-else
+elseif strcmp(Wave_Choice, 'F')
     start_time = stim_time + post_M_Max_time; % Sec.
+elseif strcmp(Wave_Choice, 'Full')
+    start_time = 0;
 end
 start_idx = round(start_time/bin_width);
 stop_time = start_time + F_Wave_length; % Sec.
 stop_idx = round(stop_time/bin_width);
+
+if strcmp(Wave_Choice, 'Full')
+    start_idx = 1;
+    stop_time = trial_length;
+    stop_idx = round(stop_time/bin_width);
+end
 
 % Font specifications
 axis_expansion = 0.1;
@@ -48,6 +60,11 @@ figure_width = 700;
 figure_height = 350;
 legend_font_size = 15;
 font_name = 'Arial';
+
+% Close all previously open figures if you're saving 
+if ~isequal(Save_Figs, 0)
+    close all
+end
 
 %% Indexes for persistant trials
 
@@ -65,12 +82,10 @@ absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
 all_trials_EMG = struct([]);
 for ii = 1:length(EMG_Names)
     all_trials_EMG{ii,1} = zeros(length(EMG{1,1}(start_idx:stop_idx, 1)), length(EMG));
-    peaktopeak_FWave = NaN(length(EMG), 1);
+    peaktopeak_amp = zeros(length(EMG), 1);
     for mm = 1:length(EMG)
         all_trials_EMG{ii,1}(:,mm) = EMG{mm}(start_idx:stop_idx, ii);
-        if strcmp(M_Max, 'No')
-            peaktopeak_FWave(mm,1) = peak2peak(all_trials_EMG{ii,1}(:,mm));
-        end
+        peaktopeak_amp(mm,1) = peak2peak(all_trials_EMG{ii,1}(:,mm));
     end
 end
 
@@ -84,7 +99,14 @@ if isequal(Plot_Figs, 1)
         hold on
     
         % Titling the plot
-        EMG_title = strcat('F-Waves: ', {' '}, Subject, {' '}, '[', EMG_Names{ii}, ']');
+        if strcmp(Wave_Choice, 'M')
+            title_string = 'M-Max:';
+        elseif strcmp(Wave_Choice, 'F')
+            title_string = 'F-Waves:';
+        elseif strcmp(Wave_Choice, 'Full')
+            title_string = 'E-Stim';
+        end
+        EMG_title = strcat(title_string, {' '}, Subject, {' '}, '[', EMG_Names{ii}, ']');
         title(EMG_title, 'FontSize', title_font_size)
     
         % Labels
@@ -103,7 +125,7 @@ if isequal(Plot_Figs, 1)
         end
         
         % Annotations
-        if strcmp(M_Max, 'No')
+        if strcmp(Wave_Choice, 'F')
             % Annotation of the F-Wave peristance
             FWave_persistance = round(mean(FWave_persistance), 2);
             legend_dims = [0.555 0.425 0.44 0.44];
@@ -114,9 +136,11 @@ if isequal(Plot_Figs, 1)
                 'EdgeColor','none', 'horizontalalignment', 'center');
             ann_legend.FontSize = legend_font_size;
             ann_legend.FontName = font_name;
+        end
         
-            % Annotation of the mean peak to peak amplitude
-            avg_peaktopeak = round(mean(peaktopeak_FWave), 2);
+        % Annotation of the mean peak to peak amplitude
+        if ~strcmp(Wave_Choice, 'Full')
+            avg_peaktopeak = round(mean(peaktopeak_amp), 2);
             legend_dims = [0.555 0.325 0.44 0.44];
             pktopk_count_string = strcat('pk-pk =', {' '}, mat2str(avg_peaktopeak), {' '}, 'mV');
             legend_string = {char(pktopk_count_string)};
@@ -126,6 +150,7 @@ if isequal(Plot_Figs, 1)
             ann_legend.FontSize = legend_font_size;
             ann_legend.FontName = font_name;
         end
+            
 
     end % End of the muscle loop
 end

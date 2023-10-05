@@ -2,18 +2,18 @@ clc
 clear
 
 params = struct( ...
-    'Group', 'SCI', ... & 'Control', 'SCI'
-    'Subject', 'SS', ... % Subject Name
-    'Task', 'MVC', ... % 'StartReact', 'MVC', 'FWave', 'StartMEP'
+    'Group', 'Control', ... & 'Control', 'SCI'
+    'Subject', 'FR', ... % Subject Name
+    'Task', 'StartMEP', ... % 'MVC', 'FWave', 'StartReact', 'StartMEP'
     'Muscle', 'ABH', ... % 'ABH', 'TA', 'SOL', 'QUAD'
-    'Date', '20230919', ... % Select the date to convert (YYYYMMDD)
+    'Date', '20231004', ... % Select the date to convert (YYYYMMDD)
     'Subject_Side', 'Right', ... % What side of the body ('Left' or 'Right')
-    'GoCue_Time', 1); % Sec. (StartReact = 1, FWave = 0.5)
+    'GoCue_Time', 2); % Sec. (MVC = 1, FWave = 0.5, StartReact = 1, StartMEP = 2)
 
 % Find the file location
-base_dir = 'Z:\Lab Members\Henry\AbH Startle';
-save_dir = strcat(base_dir, '\', params.Group, '\', params.Subject, '\', params.Date, '\');
-file_dir = strcat(save_dir, 'RawFiles\');
+base_dir = 'Z:\Lab Members\Henry\AbH Startle\Data\';
+save_dir = strcat(base_dir, params.Group, '\', params.Subject, '\');
+file_dir = strcat(save_dir, 'RawFiles\', params.Date, '\');
 file_type = strcat(file_dir, '*.mat');
 all_files = dir(file_type);
 

@@ -1,7 +1,14 @@
-function Check_EMG_Onset(sig, State, muscle_group, Save_Figs)
+function Check_StartMEP(sig, State, muscle_group, Save_Figs)
 
 %% Display the function being used
-disp('Check EMG Onset Function:');
+disp('Check StartMEP Function:');
+
+%% Check for common sources of errors
+if ~strcmp(State, 'All') && ~strcmp(State, 'MEP') && ~strcmp(State, 'MEP+50ms') ...
+        && ~strcmp(State, 'MEP+80ms') && ~strcmp(State, 'MEP+100ms')
+    disp('Incorrect State for StartMEP')
+    return
+end
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -9,7 +16,7 @@ disp('Check EMG Onset Function:');
 trial_choice = 'R';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
-EMG_Choice = 'Rect';
+EMG_Choice = 'Raw';
 
 bin_width = sig.bin_width;
 
@@ -23,7 +30,7 @@ gocue_idx = round(gocue_time/bin_width);
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to stop plotting
-stop_length = 2; % Sec.
+stop_length = 2.5; % Sec.
 stop_idx = stop_length/bin_width;
 
 % Font specifications
@@ -49,9 +56,6 @@ end
 
 %% Extract the EMG & find its onset
 [EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
-
-% Find its onset
-[EMG_onset_idx] = EMGOnset(EMG);
 
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
@@ -88,7 +92,7 @@ for ii = 1:width(all_trials_EMG{ii})
         title(fig_titles{ss}, 'FontSize', title_font_size)
     
         % Labels
-        ylabel('EMG', 'FontSize', label_font_size);
+        ylabel('EMG (mV)', 'FontSize', label_font_size);
         xlabel('Time (sec.)', 'FontSize', label_font_size);
 
         % Plot the EMG
@@ -100,19 +104,6 @@ for ii = 1:width(all_trials_EMG{ii})
         line([absolute_timing(1) absolute_timing(stop_idx)], [EMG_std EMG_std], ... 
         'LineStyle','--', 'Color', 'k')
 
-        EMG_gocue_idx = find(round(absolute_timing, 3) == 1);
-        % Plot the go-cues as dark green dots
-        if ~isempty(all_trials_EMG{pp,1}(EMG_gocue_idx,ii))
-            plot(1, all_trials_EMG{pp,1}(EMG_gocue_idx(1),ii), ...
-                'Marker', '.', 'Color', [0 0.5 0], 'Markersize', 15);
-        end
-        % Plot the EMG onset as red dots
-        if ~isnan(EMG_onset_idx(ii,pp))
-            plot(absolute_timing(EMG_onset_idx(ii,pp)), ...
-                all_trials_EMG{pp,1}(EMG_onset_idx(ii,pp),ii), ...
-                'Marker', '.', 'Color', 'r', 'Markersize', 15);
-        end
-
         ss = ss + 1;
 
     end % End of the individual trial loop
@@ -121,7 +112,7 @@ end % End of the muscle loop
 
 %% Define the save directory & save the figures
 if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
+    save_dir = 'C:\Users\rpowell\Desktop\';
     for ii = 1:numel(findobj('type','figure'))
         save_title = strrep(fig_titles{ii}, ':', '');
         save_title = strrep(save_title, 'vs.', 'vs');

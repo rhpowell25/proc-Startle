@@ -3,20 +3,29 @@ function [per_trial_EMG, EMG_Names] = Trial_StartMEP(sig, State, muscle_group, P
 %% Display the function being used
 disp('Per Trial Startled MEP Function:');
 
+%% Check for common sources of errors
+if ~strcmp(State, 'All') && ~strcmp(State, 'MEP') && ~strcmp(State, 'MEP+50ms') ...
+        && ~strcmp(State, 'MEP+80ms') && ~strcmp(State, 'MEP+100ms')
+    disp('Incorrect State for StartMEP')
+    per_trial_EMG = NaN;
+    EMG_Names = NaN;
+    return
+end
+
 %% Basic Settings, some variable extractions, & definitions
-
-% Do you want to manually set the y-axis?
-%man_y_axis = 'No';
-man_y_axis = [-1.5, 1];
-
-% Do you want to include the stimulus artifact ('Yes', 'No')
-stim_art = 'No';
 
 % Do you want to plot the rewarded or failed trials ('R' or 'F')
 trial_choice = 'R';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
 EMG_Choice = 'Raw';
+
+% Do you want to manually set the y-axis?
+man_y_axis = 'No';
+%man_y_axis = [-0.4, 0.7];
+
+% Do you want to include the stimulus artifact ('Yes', 'No')
+stim_art = 'Yes';
 
 % Title info
 Subject = sig.meta.subject;
@@ -29,29 +38,35 @@ round_digit = abs(floor(log10(bin_width)));
 
 % Time of stimulus & time after stimulus artifact
 stim_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_digit)); % Sec.
-array_length = 0.125; % Sec.
+plot_length = 0.075; % Sec.
 
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to start & stop plotting
 if strcmp(stim_art, 'Yes')
-    start_time = stim_time - 0.01; % Sec.
+    pre_stim_art = 0.01; % Sec.
+    start_time = stim_time - pre_stim_art; % Sec.
 else
     post_stim_art = 0.03; % Sec.
     start_time = stim_time + post_stim_art; % Sec.
 end
 start_idx = round(start_time/bin_width);
-stop_time = start_time + array_length; % Sec.
+stop_time = start_time + plot_length; % Sec.
 stop_idx = round(stop_time/bin_width);
 
 % Font specifications
-axis_expansion = 0.1;
+axis_expansion = 0;
 label_font_size = 15;
 title_font_size = 15;
 figure_width = 700;
-figure_height = 350;
+figure_height = 700;
 legend_font_size = 15;
 font_name = 'Arial';
+
+% Close all previously open figures if you're saving 
+if ~isequal(Save_Figs, 0)
+    close all
+end
 
 %% Indexes for rewarded trials
 
@@ -68,15 +83,16 @@ else
         strcmp(trial_info_table.State, State));
 end
 
+% End the function if no succesful trials
+if isempty(rewarded_idxs)
+    disp('No trials with this State')
+    per_trial_EMG = {NaN};
+    EMG_Names = {NaN};
+    return
+end
+
 %% Extract the EMG
 [EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
-
-%figure
-%hold on
-%absolute_timing = linspace(0, 4, length(EMG{1,1}));
-%for ii = 1:length(EMG)
-%    plot(absolute_timing, EMG{ii,1})
-%end
 
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(EMG{1,1}));

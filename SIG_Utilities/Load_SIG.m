@@ -1,8 +1,8 @@
-function [sig] = Load_SIG(Group, Subject, Date, Task, Muscle)
+function [sig] = Load_SIG(Group, Subject, Task, Muscle)
 
 %% Define the file location
-base_dir = 'Z:\Lab Members\Henry\AbH Startle\';
-folder_dir = strcat(base_dir, Group, '\', Subject, '\', Date, '\');
+base_dir = 'Z:\Lab Members\Henry\AbH Startle\Data\';
+folder_dir = strcat(base_dir, Group, '\', Subject, '\');
 open_file = dir(strcat(folder_dir, '*.mat'));
 
 % Find the names of each file

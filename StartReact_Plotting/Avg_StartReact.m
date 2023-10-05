@@ -3,6 +3,12 @@ function Avg_StartReact(sig, State, muscle_group, Save_Figs)
 %% Display the function being used
 disp('Average sig EMG Function:');
 
+%% Check for common sources of errors
+if ~strcmp(State, 'All') && ~strcmp(State, 'F') && ~strcmp(State, 'F+s') && ~strcmp(State, 'F+S')
+    disp('Incorrect State for StartReact')
+    return
+end
+
 %% Basic Settings, some variable extractions, & definitions
 
 % Extract the per trial reaction times
@@ -28,6 +34,11 @@ title_font_size = 15;
 font_name = 'Arial';
 figure_width = 700;
 figure_height = 350;
+
+% Close all previously open figures if you're saving 
+if ~isequal(Save_Figs, 0)
+    close all
+end
 
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(sig.raw_EMG{1,1}(:,1)));

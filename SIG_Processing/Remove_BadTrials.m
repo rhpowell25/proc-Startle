@@ -4,25 +4,71 @@ function [sig] = Remove_BadTrials(sig)
 %% Which experiment are you looking at
 bad_trials = [];
 
-%% SCI
-if strcmp(sig.meta.subject, 'PM')
-    if strcmp(sig.meta.task, 'ABH')
-        bad_trials = [3; 4; 8; 9; 12; 14; 15; 22; 23; 40; 41; 43; 46];
+%% SCI StartReact
+
+if strcmp(sig.meta.task, 'StartReact')
+    if strcmp(sig.meta.subject, 'WM')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = 13;
+        end
+    end
+    if strcmp(sig.meta.subject, 'SS')
+        if strcmp(sig.meta.muscle, 'ABH')
+            %bad_trials = 13;
+        end
+    end
+    if strcmp(sig.meta.subject, 'PM')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [9; 12; 13; 14; 15; 40; 41; 43; 46];
+        end
+    end
+    if strcmp(sig.meta.subject, 'JW')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [13; 47; 20; 50; 60];
+        end
+        if strcmp(sig.meta.muscle, 'AbH_Abd')
+            bad_trials = [4; 5; 7; 10; 14; 15; 19; 20; 21; 25; 28; 29; 45; 52; 55];
+        end
+        if strcmp(sig.meta.muscle, 'Plantar')
+            bad_trials = [2; 17; 22; 28; 60];
+        end
     end
 end
 
-if strcmp(sig.meta.subject, 'JW')
-    if strcmp(sig.meta.task, 'ABH')
-        bad_trials = [13; 20; 50; 60];
+
+%% Control Subjects StartReact
+
+if strcmp(sig.meta.task, 'StartReact')
+
+    if strcmp(sig.meta.subject, 'FR')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [4; 31; 32; 33; 41; 42; 44; 48; 55; 57];
+        end
     end
-    if strcmp(sig.meta.task, 'AbH_Abd')
-        bad_trials = [4; 5; 7; 10; 14; 15; 19; 20; 21; 25; 28; 29; 45; 52; 55];
+    if strcmp(sig.meta.subject, 'KP')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [14; 25; 35; 45];
+        end
     end
-    if strcmp(sig.meta.task, 'Plantar')
-        bad_trials = [2; 17; 22; 28; 60];
+    if strcmp(sig.meta.subject, 'RR')
+        if strcmp(sig.meta.muscle, 'ABH')
+        end
+    end
+    if strcmp(sig.meta.subject, 'MA')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [6; 11; 22; 27; 37; 38; 41; 47];
+        end
+    end
+    if strcmp(sig.meta.subject, 'HE')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = 20;
+        end
     end
 end
 
+%% Preliminary testing
+
+% SCI
 if strcmp(sig.meta.subject, 'MR')
     if strcmp(sig.meta.task, 'ABH')
         bad_trials = [3; 5; 7; 8; 9; 10; 11; 12; 13; 26; 31; 36; 42; 46; 48; 52; 56; 59];
@@ -41,7 +87,7 @@ if strcmp(sig.meta.subject, 'MR')
     end
 end
 
-%% Control Subjects
+% Controls
 if strcmp(sig.meta.subject, 'HP')
     if strcmp(sig.meta.task, 'Plantar')
         bad_trials = [13; 14];

@@ -6,7 +6,7 @@ close all
 % Group Name ('Control', 'SCI')
 Group = 'SCI';
 % Subject Name
-Subject = 'JW';
+Subject = 'PM';
 % What Task do you want to load? ('StartReact', 'StartMEP', 'FWave')
 Task = 'StartReact';
 % What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
@@ -22,7 +22,7 @@ Muscle = 'ABH';
 % Decide whether or not to plot (1 = Yes; 0 = No)
 Plot_Figs = 1;
 % Save the figures to desktop? ('pdf', 'png', 'fig', 0 = no)
-Save_Figs = 'png';
+Save_Figs = 0;
 % What muscle groups do you want to look at? ('ABH', 'TA', 'SOL', 'QUAD', or 'All')
 muscle_group = 'ABH';
 
@@ -31,20 +31,19 @@ muscle_group = 'ABH';
 % StartMEP ('MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms')
 State = 'F';
 
-%Check_StartReact(sig, State, muscle_group, Save_Figs)
-Overlap_StartReact(sig, muscle_group, Save_Figs)
-StartReact_Ind_Violin(sig, Plot_Figs, Save_Figs);
+Check_StartReact(sig, State, muscle_group, Save_Figs)
+
 %% Load the subject details
 % Group Name ('Control', 'SCI')
 Group = 'SCI';
-[Subjects] = SIG_File_Details(Group);
-Task = 'StartReact';
+[Subjects] = Signal_File_Details(Group);
+Task = 'StartMEP';
 
 for ii = 1:length(Subjects)
     [sig] = Load_SIG(Group, Subjects{ii}, Task, 'ABH');
     [sig] = Process_SIG(sig);
-    Overlap_StartReact(sig, muscle_group, Save_Figs)
-    StartReact_Ind_Violin(sig, Plot_Figs, Save_Figs);
+    [cutoff_trials] = Baseline_EMG(sig, 'ABH', Plot_Figs, Save_Figs);
+    %StartMEP_BoxPlot(sig, muscle_group, Plot_Figs, Save_Figs);
 end
 
 %% Baseline EMG analysis
@@ -100,7 +99,7 @@ OverlapSIGForce(sig, Save_Figs)
 %% Excel Generation
 
 % Group Name ('Control', 'SCI')
-Group = 'SCI';
+Group = 'Control';
 % Save the matrix to Excel? (1 = Yes, 0 = No)
 Save_Excel = 1;
 

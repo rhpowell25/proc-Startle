@@ -1,27 +1,26 @@
-function Reaction_Time_Excel(Group, Subjects, Dates, Save_Excel)
+function StartReact_Excel(Group, Subjects, Save_Excel)
 
 %% Some of the analysis specifications
 
 Save_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
 
-% Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
-EMG_Choice = 'Raw';
+% Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
+EMG_Choice = 'Rect';
 
 % Do you want to analyze the rewarded or failed trials ('R' or 'F')
 trial_choice = 'R';
 
 % Initialize the output variables
 Muscle = {'ABH'};
-%Tasks = {'AbH_Flex'; 'AbH_Abd'; 'Plantar'; 'TA'; 'SOL'};
 
 %% Loop through the different experiments
-for xx = 1:length(Dates)
+for xx = 1:length(Subjects)
 
     %% Loop through each task
     for jj = 1:length(Muscle)
     
         %% Load the signal file
-        [sig] = Load_SIG(Group, Subjects{xx}, Dates{xx}, 'StartReact', Muscle);
+        [sig] = Load_SIG(Group, Subjects{xx}, 'StartReact', Muscle{jj});
 
         % Skip the file if unable to load
         if ~isstruct(sig)
@@ -33,6 +32,9 @@ for xx = 1:length(Dates)
 
         % Bin size
         bin_width = sig.bin_width;
+
+        % Date
+        Date = sig.meta.date;
 
         %% Indexes for rewarded trials
 
@@ -49,40 +51,10 @@ for xx = 1:length(Dates)
         gocue_times = Trial_Table.goCueTime - Trial_Table.startTime;
 
         %% Extract the EMG & find its onset
-        if strcmp(EMG_Choice, 'Raw')
-            raw_EMG = sig.raw_EMG;
-            % DC removal of the EMG
-            Zeroed_EMG = struct([]);
-            for ii = 1:length(raw_EMG)
-                for pp = 1:width(raw_EMG{ii})
-                    Zeroed_EMG{ii}(:,pp) = raw_EMG{ii}(:,pp) - mean(raw_EMG{ii}(:,pp));
-                end
-            end
-            % Rectify the EMG
-            Rect_EMG = struct([]);
-            for ii = 1:length(Zeroed_EMG)
-                for pp = 1:width(Zeroed_EMG{ii})
-                    Rect_EMG{ii,1}(:,pp) = abs(Zeroed_EMG{ii}(:,pp));
-                end
-            end
-        else
-            Rect_EMG = sig.EMG;
-        end
-        
-        % Use only the selected EMG
-        muscle_group = 'ABH';
-        if ~strcmp(muscle_group, 'All')
-            EMG_name_idx = find(strcmp(sig.EMG_names, muscle_group));
-        else
-            EMG_name_idx = 1:length(sig.EMG_names);
-        end
-        
-        % Extract the selected EMG
-        EMG = struct([]);
-        for ii = 1:length(rewarded_idxs)
-            EMG{ii,1} = Rect_EMG{rewarded_idxs(ii)}(:,EMG_name_idx);
-        end
-        
+
+        % EMG extraction
+        [~, EMG] = Extract_EMG(sig, EMG_Choice, Muscle, rewarded_idxs);
+
         % Find its onset
         [EMG_onset_idx] = EMGOnset(EMG);
     
@@ -109,7 +81,7 @@ for xx = 1:length(Dates)
         if isequal(Save_Excel, 1)
     
             % Define the file name
-            filename = char(strcat(Dates{xx,1}, '_', Subjects{xx,1}, '_', Muscle{jj}));
+            filename = char(strcat(Date, '_', Subjects{xx,1}, '_', Muscle{jj}));
     
             % Save the file
             if ~exist(Save_Path, 'dir')
@@ -121,7 +93,7 @@ for xx = 1:length(Dates)
 
     end % End of the Task loop
 
-end % End the Date loop
+end % End the Subject loop
 
 
 

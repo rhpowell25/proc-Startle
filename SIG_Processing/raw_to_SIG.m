@@ -67,13 +67,20 @@ EMG_length = 3;
 
 % Extract the EMG names
 EMG_names = struct([]);
+EMG_idxs = zeros(EMG_length,1);
+cc = 1;
 for pp = 1:EMG_length
-    EMG_names{pp,1} = signal_file.chaninfo(pp).title;
+    if strcmp(signal_file.chaninfo(cc).title, 'Force')
+        cc = cc + 1;
+    end
+    EMG_names{pp,1} = signal_file.chaninfo(cc).title;
+    EMG_idxs(pp) = cc;
+    cc = cc + 1;
 end
 % Extract the raw EMG
 raw_EMG = struct([]);
 for pp = 1:length(trial_num)
-    raw_EMG{pp,1} = signal_file.values(:,1:EMG_length,pp);
+    raw_EMG{pp,1} = signal_file.values(:,EMG_idxs,pp);
 end
 
 % Sampling rate

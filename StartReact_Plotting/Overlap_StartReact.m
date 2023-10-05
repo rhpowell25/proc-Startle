@@ -31,6 +31,11 @@ font_name = 'Arial';
 figure_width = 700;
 figure_height = 350;
 
+% Close all previously open figures if you're saving 
+if ~isequal(Save_Figs, 0)
+    close all
+end
+
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(sig.raw_EMG{1,1}(:,1)));
 

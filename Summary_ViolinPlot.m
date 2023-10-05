@@ -13,7 +13,7 @@ function Summary_ViolinPlot(Group, Save_Figs)
 %% Basic Settings, some variable extractions, & definitions
 
 % Load the subject details
-[Subjects, ~] = Signal_File_Details(Group);
+[Subjects] = Signal_File_Details(Group);
 
 % Do you want to connect the dots? (1 = Yes, 0 = No)
 connect_dots = 1;
@@ -29,43 +29,19 @@ if ~isequal(Save_Figs, 0)
     close all
 end
 
-delta_rxn_time = struct([]);
-Task_Name = struct([]);
+
+%% Collect the change in reaction times
+delta_rxn_time = zeros(length(Subjects), 1);
+Muscle = 'ABH';
 for ii = 1:length(Subjects)
-    [Task_Name{ii}, delta_rxn_time{ii}, ~] = RS_Gain_Summary(Group, Subjects{ii});
-    % Remove TA and SOL
-    Task_Name{ii}(4:5) = [];
+    [delta_rxn_time(ii), ~] = RS_Gain_Summary(Group, Muscle, Subjects{ii});
 end
+
+%% Collect the F-Wave amplitudes
 
 %% Put the reaction time changes in the same array
-
-AbH_Flex_rxn_time = zeros(length(Task_Name),1);
-AbH_Abd_rxn_time = zeros(length(Task_Name),1);
-Plantar_rxn_time = zeros(length(Task_Name),1);
-%TA_rxn_time = zeros(length(Task_Name),1);
-%SOL_rxn_time = zeros(length(Task_Name),1);
-for ii = 1:length(Task_Name)
-    AbH_Flex_rxn_time(ii) = delta_rxn_time{ii}(strcmp(Task_Name{ii}, {'AbH_Flex'}));
-    AbH_Abd_rxn_time(ii) = delta_rxn_time{ii}(strcmp(Task_Name{ii}, {'AbH_Abd'}));
-    Plantar_rxn_time(ii) = delta_rxn_time{ii}(strcmp(Task_Name{ii}, {'Plantar'}));
-    %TA_rxn_time(ii) = delta_rxn_time{ii}(strcmp(Task_Name{ii}, {'TA'}));
-    %SOL_rxn_time(ii) = delta_rxn_time{ii}(strcmp(Task_Name{ii}, {'SOL'}));
-end
-
-d_rxn_time = cat(1, AbH_Flex_rxn_time, AbH_Abd_rxn_time, Plantar_rxn_time);
-%d_rxn_time = cat(1, AbH_Flex_rxn_time, AbH_Abd_rxn_time, Plantar_rxn_time, TA_rxn_time, SOL_rxn_time);
-AbH_Flex_string = cell(length(AbH_Flex_rxn_time), 1);
-AbH_Flex_string(:) = {'AbH Flex'};
-AbH_Abd_string = cell(length(AbH_Abd_rxn_time), 1);
-AbH_Abd_string(:) = {'AbH Abd'};
-Plantar_string = cell(length(Plantar_rxn_time), 1);
-Plantar_string(:) = {'Plantar'};
-%TA_string = cell(length(TA_rxn_time), 1);
-%TA_string(:) = {'TA'};
-%SOL_string = cell(length(SOL_rxn_time), 1);
-%SOL_string(:) = {'SOL'};
-Task_Names = cat(1, AbH_Flex_string, AbH_Abd_string, Plantar_string);
-%Task_Names = cat(1, AbH_Flex_string, AbH_Abd_string, Plantar_string, TA_string, SOL_string);
+Task_string = cell(length(delta_rxn_time), 1);
+Task_string(:) = {Muscle};
 
 %% Plot the violin plot
 
@@ -82,7 +58,7 @@ xlabel('Task', 'FontSize', label_font_size)
 ylabel('Δ Reaction Time (Sec.)', 'FontSize', label_font_size);
     
 % Violin plot
-Violin = Violin_Plot(d_rxn_time, Task_Names);
+Violin = Violin_Plot(delta_rxn_time, Task_string);
 
 %% Statistics
 %[p,t,stats] = anova1(d_rxn_time, Task_Names);
