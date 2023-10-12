@@ -13,7 +13,7 @@ function StartReact_Ind_Violin(sig, Plot_Figs, Save_Figs)
 %% Basic Settings, some variable extractions, & definitions
 
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
-plot_choice = 'Violin';
+plot_choice = 'Box';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
 EMG_Choice = 'Rect';
@@ -113,6 +113,7 @@ if isequal(Plot_Figs, 1)
         if strcmp(plot_choice, 'Box')
             boxplot(all_trials_rxn_time, all_trials_states, 'GroupOrder', {'F+S', 'F+s', 'F'});
             % Color the box plots
+            plot_colors = flip(plot_colors, 1);
             box_axes = findobj(gca,'Tag','Box');
             for pp = 1:length(box_axes)
                 patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
@@ -123,9 +124,7 @@ if isequal(Plot_Figs, 1)
         end
 
         set(gca,'fontsize', label_font_size)
-
         
-
         % Set the axis-limits
         xlim([0.5 3.5]);
         ylim([y_min - axis_expansion, y_max + axis_expansion])

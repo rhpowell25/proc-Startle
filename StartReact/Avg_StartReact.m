@@ -1,7 +1,7 @@
 function Avg_StartReact(sig, State, muscle_group, Save_Figs)
 
 %% Display the function being used
-disp('Average sig EMG Function:');
+disp('Average StartReact Function:');
 
 %% Check for common sources of errors
 if ~strcmp(State, 'All') && ~strcmp(State, 'F') && ~strcmp(State, 'F+s') && ~strcmp(State, 'F+S')
@@ -84,7 +84,7 @@ for ii = 1:length(EMG_Names)
     hold on
     
     % Y Labels
-    ylabel('EMG', 'FontSize', label_font_size);
+    ylabel('EMG (mV)', 'FontSize', label_font_size);
     
     % Mean EMG
     plot(absolute_timing(1:stop_idx), cross_trial_avg_EMG{ii,1}(1:stop_idx), ...

@@ -1,4 +1,4 @@
-function StartMEP_BoxPlot(sig, muscle_group, Plot_Figs, Save_Figs)
+function StartMEP_Ind_Violin(sig, muscle_group, Plot_Figs, Save_Figs)
 
 %% File Description:
 
@@ -11,6 +11,9 @@ function StartMEP_BoxPlot(sig, muscle_group, Plot_Figs, Save_Figs)
 % Save_Figs: 'pdf', 'png', 'fig', 'All', or 0
 
 %% Basic Settings, some variable extractions, & definitions
+
+% Do you want to use a boxplot or violinplot? ('Box', 'Violin')
+plot_choice = 'Box';
 
 % Title info
 Subject = sig.meta.subject;
@@ -25,8 +28,8 @@ end
 States = unique(State_list)';
 
 % Font specifications
-%state_colors = [0 0 0; 1 0 0; 0 0.5 0];
-box_colors = [0 0 0; 1 0 0; 0 0.5 0; .7 .7 .7];
+%plot_colors = [0 0 0; 1 0 0; 0 0.5 0];
+plot_colors = [0 0 0; 1 0 0; 0 0.5 0; .7 .7 .7];
 axis_expansion = 0.02;
 label_font_size = 17;
 title_font_size = 20;
@@ -74,17 +77,25 @@ if isequal(Plot_Figs, 1)
             {' '}, '[', EMG_Names{ii}, ']');
         title(EMG_title, 'FontSize', title_font_size, 'Interpreter', 'none');
         
-        % Violin plot
+        % Plot
+        if strcmp(plot_choice, 'Box')
+            boxplot(all_trials_peaktopeak, all_trials_states, 'GroupOrder', ...
+                {'MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms'});
+            % Color the box plots
+            plot_colors = flip(plot_colors, 1);
+            box_axes = findobj(gca,'Tag','Box');
+            for pp = 1:length(box_axes)
+                patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
+            end
+        elseif strcmp(plot_choice, 'Violin')
+            Violin_Plot(all_trials_peaktopeak, all_trials_states, 'GroupOrder', ...
+                {'MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms'}, 'ViolinColor', plot_colors);
+        end
+
         %Violin_Plot(all_trials_peaktopeak, all_trials_states, 'GroupOrder', ...
         %    {'MEP', 'MEP+50ms', 'MEP+80ms'}, 'ViolinColor', state_colors);
-        boxplot(all_trials_peaktopeak, all_trials_states);% Increase the font size
+
         set(gca,'fontsize', label_font_size)
-        
-        % Color the box plots
-        box_axes = findobj(gca,'Tag','Box');
-        for pp = 1:length(box_axes)
-            patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), box_colors(pp,:), 'FaceAlpha', .5);
-        end
 
         xlim([0.5 4.5]);
         ylim([y_min - axis_expansion, y_max + axis_expansion])

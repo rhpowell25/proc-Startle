@@ -7,6 +7,8 @@ bin_size = trial_length / length(EMG{1});
 
 GoCue_idx = 1.1 / bin_size;
 
+std_multiplier = 5;
+
 Plot_Figs = 0;
 
 %% Defines onset time via the EMG onset
@@ -21,7 +23,7 @@ for ii = 1:length(EMG)
         peak_EMG_idx = find(sub_EMG == max(sub_EMG));
         peak_EMG_idx = peak_EMG_idx(1);
         % Find the baseline EMG
-        baseline_EMG_cutoff = mean(sub_EMG(1:GoCue_idx)) + 5*std(sub_EMG(1:GoCue_idx));
+        baseline_EMG_cutoff = mean(sub_EMG(1:GoCue_idx)) + std_multiplier*std(sub_EMG(1:GoCue_idx));
         % Find the EMG above & below the cutoff
         EMG_under_cutoff = find(sub_EMG(GoCue_idx:peak_EMG_idx) <= baseline_EMG_cutoff);
         EMG_over_cutoff = find(sub_EMG(GoCue_idx:peak_EMG_idx) > baseline_EMG_cutoff);

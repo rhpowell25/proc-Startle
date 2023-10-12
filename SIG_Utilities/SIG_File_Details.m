@@ -23,5 +23,13 @@ if strcmp(Group, 'SCI')
     Names{2,1} = 'PM';
     Names{3,1} = 'JW';
     Names{4,1} = 'WM';
+    Names{5,1} = 'DM';
     %Names{1,1} = 'MR';
 end
+
+% Force calibration
+if strcmp(Group, 'Force')
+    Names(1,1) = 8.4443;
+end
+
+

@@ -1,13 +1,13 @@
-function [per_trial_EMG, EMG_Names] = Trial_StartReact(sig, State, muscle_group, Plot_Figs, Save_Figs)
+function [per_trial_Plot_Metric, Plot_Names] = Trial_MVC(sig, Plot_Choice, muscle_group, Plot_Figs, Save_Figs)
 
 %% Display the function being used
-disp('Per Trial StartReact Function:');
+disp('Per Trial MVC Function:');
 
 %% Check for common sources of errors
-if ~strcmp(State, 'All') && ~strcmp(State, 'F') && ~strcmp(State, 'F+s') && ~strcmp(State, 'F+S')
-    disp('Incorrect State for StartReact')
-    per_trial_EMG = NaN;
-    EMG_Names = NaN;
+if ~isstruct(sig)
+    disp('NaN Sig File!')
+    per_trial_Plot_Metric = {NaN};
+    Plot_Names = {NaN};
     return
 end
 
@@ -29,24 +29,7 @@ Subject = sig.meta.subject;
 % Bin width and baseline indices
 bin_width = sig.bin_width;
 
-% Rounding to remove floating point errors
-round_digit = abs(floor(log10(bin_width)));
-
-% Time of the go cue
-gocue_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_digit)); % Sec.
-gocue_idx = round(gocue_time/bin_width);
-
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
-
-% When do you want to start and stop plotting
-start_time = 0; % Sec.
-if isequal(start_time, 0)
-    start_idx = 1;
-else
-    start_idx = start_time/bin_width;
-end
-stop_time = 5; % Sec.
-stop_idx = stop_time/bin_width;
 
 % Font specifications
 axis_expansion = 0.1;
@@ -54,6 +37,11 @@ label_font_size = 15;
 title_font_size = 15;
 figure_width = 700;
 figure_height = 350;
+
+% Close all previously open figures if you're saving 
+if ~isequal(Save_Figs, 0)
+    close all
+end
 
 %% Indexes for rewarded trials
 
@@ -63,63 +51,59 @@ trial_info_table = cell2table(sig.trial_info_table);
 trial_info_table.Properties.VariableNames = matrix_variables;
 
 % Indexes for rewarded trials
-if strcmp(State, 'All')
-    rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
-else
-    rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice) & ...
-        strcmp(trial_info_table.State, State));
+rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+
+%% Extract the EMG or force
+if isequal(Plot_Choice, 'EMG')
+    [Plot_Names, Plot_Metric] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
+elseif isequal(Plot_Choice, 'Force')
+    Plot_Names = {'Force'};
+    [Plot_Metric] = Extract_Force(sig, 1, 1, rewarded_idxs);
 end
 
-%% Extract the EMG & find its onset
-[EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
-
-% Find its onset
-[EMG_onset_idx] = EMGOnset(EMG);
-
 %% Define the absolute timing
-absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
+absolute_timing = linspace(0, trial_length, length(Plot_Metric{1,1}));
 
 %% Putting all succesful trials in one array
-per_trial_EMG = struct([]);
-for ii = 1:length(EMG_Names)
-    per_trial_EMG{ii,1} = zeros(length(EMG{1,1}),length(EMG));
-    for mm = 1:length(EMG)
-        per_trial_EMG{ii,1}(:,mm) = EMG{mm}(:, ii);
+
+per_trial_Plot_Metric = struct([]);
+if isequal(Plot_Choice, 'EMG')
+    for ii = 1:length(Plot_Names)
+        per_trial_Plot_Metric{ii,1} = zeros(length(Plot_Metric{1,1}),length(Plot_Metric));
+        for mm = 1:length(Plot_Metric)
+            per_trial_Plot_Metric{ii,1}(:,mm) = Plot_Metric{mm}(:, ii);
+        end
+    end
+elseif isequal(Plot_Choice, 'Force')
+    for ii = 1:length(Plot_Metric)
+        per_trial_Plot_Metric{1,1}(:,ii) = Plot_Metric{ii}(:,1);
     end
 end
 
 %% Plot the individual EMG traces on the top
 
 if isequal(Plot_Figs, 1)
-    for ii = 1:length(EMG_Names)
+    for ii = 1:length(Plot_Names)
     
         EMG_figure = figure;
         EMG_figure.Position = [300 100 figure_width figure_height];
         hold on
     
         % Titling the plot
-        EMG_title = strcat('Reaction Time:', {' '}, Subject, {' '}, '[', State, ']', {' '}, EMG_Names{ii});
+        EMG_title = strcat('MVC:', {' '}, Subject, {' '}, Plot_Names{ii});
         title(EMG_title, 'FontSize', title_font_size)
     
         % Labels
-        ylabel('EMG (mV)', 'FontSize', label_font_size);
+        if isequal(Plot_Choice, 'EMG')
+            ylabel('EMG (mV)', 'FontSize', label_font_size);
+        elseif isequal(Plot_Choice, 'Force')
+            ylabel('Force (N)', 'FontSize', label_font_size);
+        end
         xlabel('Time (sec.)', 'FontSize', label_font_size);
     
-        for pp = 1:width(per_trial_EMG{ii})
+        for pp = 1:width(per_trial_Plot_Metric{ii})
     
-            plot(absolute_timing(start_idx:stop_idx), per_trial_EMG{ii}(start_idx:stop_idx,pp))
-    
-            % Plot the go-cues as dark green dots
-            if ~isempty(per_trial_EMG{ii,1}(gocue_idx,pp))
-                plot(1, per_trial_EMG{ii,1}(gocue_idx(1),pp), ...
-                    'Marker', '.', 'Color', [0 0.5 0], 'Markersize', 15);
-            end
-            % Plot the EMG onset as red dots
-            if ~isnan(EMG_onset_idx(pp,ii))
-                plot(absolute_timing(EMG_onset_idx(pp,ii)), per_trial_EMG{ii,1}(EMG_onset_idx(pp,ii),pp), ...
-                    'Marker', '.', 'Color', 'r', 'Markersize', 15);
-            end
-            %pause(0.5)
+            plot(absolute_timing, per_trial_Plot_Metric{ii}(:,pp))
     
         end % End of the individual trial loop
     

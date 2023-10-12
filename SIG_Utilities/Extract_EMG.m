@@ -1,6 +1,6 @@
 function [EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs)
 
-%% Extract the EMG & find its onset
+%% Extract the EMG
 if strcmp(EMG_Choice, 'Raw')
     temp_EMG = sig.raw_EMG;
 end
@@ -27,7 +27,7 @@ if strcmp(EMG_Choice, 'Proc')
     temp_EMG = sig.EMG;
 end
 
-% Use only the selected EMG
+%% Use only the selected EMG
 if ~strcmp(muscle_group, 'All')
     EMG_name_idx = find(strcmp(sig.EMG_names, muscle_group));
 else

@@ -1,11 +1,8 @@
-function StartReact_Excel(Group, Subjects, Save_Excel)
+function StartMEP_Excel(Group, Subjects, Save_Excel)
 
 %% Some of the analysis specifications
 
 Save_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
-
-% Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
-EMG_Choice = 'Rect';
 
 % Do you want to analyze the rewarded or failed trials ('R' or 'F')
 trial_choice = 'R';
@@ -20,7 +17,7 @@ for xx = 1:length(Subjects)
     for jj = 1:length(Muscle)
     
         %% Load the signal file
-        [sig] = Load_SIG(Group, Subjects{xx}, 'StartReact', Muscle{jj});
+        [sig] = Load_SIG(Group, Subjects{xx}, 'StartMEP', Muscle{jj});
 
         % Skip the file if unable to load
         if ~isstruct(sig)
@@ -29,9 +26,6 @@ for xx = 1:length(Subjects)
 
         % Process the sig file
         [sig] = Process_SIG(sig);
-
-        % Bin size
-        bin_width = sig.bin_width;
 
         % Date
         Date = sig.meta.date;
@@ -44,24 +38,17 @@ for xx = 1:length(Subjects)
         trial_info_table.Properties.VariableNames = matrix_variables;
 
         % Indexes for rewarded trials
-        rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+        rewarded_idxs = strcmp(trial_info_table.result, trial_choice);
 
         % Rewarded trial table
         Trial_Table = trial_info_table(rewarded_idxs, :);
-        gocue_times = Trial_Table.goCueTime - Trial_Table.startTime;
 
-        %% Extract the EMG & find its onset
-
-        % EMG extraction
-        [~, EMG] = Extract_EMG(sig, EMG_Choice, Muscle, rewarded_idxs);
-
-        % Find its onset
-        [EMG_onset_idx] = EMGOnset(EMG);
+        %% Extract the EMG & find its peak to peak amplitude
+        [peaktopeak_MEP, ~] = Avg_StartMEP(sig, 'All', Muscle, 0, 0);
+        peaktopeak_MEP = peaktopeak_MEP{1,1};
     
-        %% Find the EMG reaction times
-        rxn_time = (EMG_onset_idx * bin_width) - gocue_times;
-    
-        % Create the table addition
+        %% Create the table addition
+
         excel_length = length(Trial_Table.number);
         excel_number = array2table(NaN(excel_length, 1));
         excel_number.Properties.VariableNames = {'Trial'};
@@ -69,19 +56,19 @@ for xx = 1:length(Subjects)
         excel_state = array2table(NaN(excel_length, 1));
         excel_state.Properties.VariableNames = {'State'};
         excel_state.State = Trial_Table.State;
-        excel_rxn_time = array2table(NaN(excel_length, 1));
-        excel_rxn_time.Properties.VariableNames = {'rxn_time'};
-        excel_rxn_time.rxn_time = rxn_time;
+        excel_peaktopeak_MEP = array2table(NaN(excel_length, 1));
+        excel_peaktopeak_MEP.Properties.VariableNames = {'peaktopeak_MEP'};
+        excel_peaktopeak_MEP.peaktopeak_MEP = peaktopeak_MEP;
     
         % Join the tables
-        xds_excel = [excel_number excel_state excel_rxn_time];
+        xds_excel = [excel_number excel_state excel_peaktopeak_MEP];
     
         %% Save to Excel
     
         if isequal(Save_Excel, 1)
     
             % Define the file name
-            filename = char(strcat(Date, '_', Subjects{xx,1}, '_', Muscle{jj}));
+            filename = char(strcat(Date, '_', Subjects{xx,1}, '_', sig.meta.task, '_', Muscle{jj}));
     
             % Save the file
             if ~exist(Save_Path, 'dir')

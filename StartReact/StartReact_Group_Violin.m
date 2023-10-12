@@ -2,16 +2,22 @@ function StartReact_Group_Violin(Muscle, State, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
+% Do you want to use a boxplot or violinplot? ('Box', 'Violin')
+plot_choice = 'Violin';
+
 % Load all subject details from the group
 [Control_Names] = SIG_File_Details('Control');
 [SCI_Names] = SIG_File_Details('SCI');
+
+% What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
+Task = 'StartReact';
 
 % Do you want to show the statistics (1 = Yes, 0 = No)
 plot_stats = 0; 
 
 % Font specifications
 axis_expansion = 0.025;
-violin_colors = [0 0.447 0.741; 0.85 0.325 0.098];
+plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
 label_font_size = 17;
 title_font_size = 20;
 p_value_dims = [0.51 0.45 0.44 0.44];
@@ -34,7 +40,7 @@ for ii = 1:length(Control_Names)
     elseif strcmp(State, 'Delta')
         [con_StartReact{ii,1}, ~] = RS_Gain_Summary('Control', Muscle, Control_Names{ii});
     else
-        [rxn_time_excel, ~] = Load_Toe_Excel('Control', Control_Names{ii}, Muscle, State);
+        [rxn_time_excel, ~] = Load_AbH_Excel('Control', Control_Names{ii}, Task, Muscle, State);
         con_StartReact{ii,1} = mean(rxn_time_excel{1,1}.rxn_time, 'omitnan');
     end
 end
@@ -49,7 +55,7 @@ for ii = 1:length(SCI_Names)
     elseif strcmp(State, 'Delta')
         [SCI_StartReact{ii,1}, ~] = RS_Gain_Summary('SCI', Muscle, SCI_Names{ii});
     else
-        [rxn_time_excel, ~] = Load_Toe_Excel('SCI', SCI_Names{ii}, Muscle, State);
+        [rxn_time_excel, ~] = Load_AbH_Excel('SCI', SCI_Names{ii}, Task, Muscle, State);
         SCI_StartReact{ii,1} = mean(rxn_time_excel{1,1}.rxn_time, 'omitnan');
     end
 end
@@ -86,17 +92,31 @@ else
 end
 title_string = strcat('StartReact:', {' '}, title_string);
 
-%% Plot the Box Plot
+%% Plot the violin plot
 
-box_fig = figure;
-box_fig.Position = [200 50 fig_size fig_size];
+plot_fig = figure;
+plot_fig.Position = [200 50 fig_size fig_size];
 hold on
 
-% Plot the box plot
-Violin_Plot([merged_con_StartReact; merged_SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
-            {'Control', 'SCI'}, 'ViolinColor', violin_colors);
 % Title
 title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+
+% Plot
+if strcmp(plot_choice, 'Box')
+    boxplot([merged_con_StartReact; merged_SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
+            {'Control', 'SCI'});
+    % Color the box plots
+    plot_colors = flip(plot_colors, 1);
+    box_axes = findobj(gca,'Tag','Box');
+    for pp = 1:length(box_axes)
+        patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
+    end
+elseif strcmp(plot_choice, 'Violin')
+    Violin_Plot([merged_con_StartReact; merged_SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
+            {'Control', 'SCI'}, 'ViolinColor', plot_colors);
+end
+
+set(gca,'fontsize', label_font_size)
 
 % Labels
 xlabel('Group', 'FontSize', label_font_size)

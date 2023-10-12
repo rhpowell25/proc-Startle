@@ -4,9 +4,29 @@ function [sig] = Remove_BadTrials(sig)
 %% Which experiment are you looking at
 bad_trials = [];
 
-%% SCI StartReact
+%% SCI MVC
+if strcmp(sig.meta.task, 'MVC')
+    if strcmp(sig.meta.subject, 'SS')
+        bad_trials = [1; 3];
+    end
+    if strcmp(sig.meta.subject, 'JW')
+        bad_trials = [3; 4];
+    end
+    if strcmp(sig.meta.subject, 'WM')
+        bad_trials = 2;
+    end
+    if strcmp(sig.meta.subject, 'KP')
+        bad_trials = [2; 5];
+    end
+end
 
+%% SCI StartReact
 if strcmp(sig.meta.task, 'StartReact')
+    if strcmp(sig.meta.subject, 'DM')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [5; 16; 18; 27; 35; 39; 43; 44; 45; 52; 58; 60];
+        end
+    end
     if strcmp(sig.meta.subject, 'WM')
         if strcmp(sig.meta.muscle, 'ABH')
             bad_trials = 13;
@@ -63,6 +83,14 @@ if strcmp(sig.meta.task, 'StartReact')
         if strcmp(sig.meta.muscle, 'ABH')
             bad_trials = 20;
         end
+    end
+end
+
+%% Control subject startMEP
+if strcmp(sig.meta.task, 'StartMEP')
+    if strcmp(sig.meta.subject, 'KP')
+        % Had to readjust startle headphones
+        bad_trials = (1:22)';
     end
 end
 

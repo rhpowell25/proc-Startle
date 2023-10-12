@@ -1,17 +1,20 @@
-function StartMEP_ViolinPlot(Muscle, State, Save_Figs)
+function MVC_Group_Violin(Muscle, Plot_Choice, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
+% Do you want to use a boxplot or violinplot? ('Box', 'Violin')
+plot_choice = 'Violin';
+
 % Load all subject details from the group
-[Control_Names] = Signal_File_Details('Control');
-[SCI_Names] = Signal_File_Details('SCI');
+[Control_Names] = SIG_File_Details('Control');
+[SCI_Names] = SIG_File_Details('SCI');
 
 % Do you want to show the statistics (1 = Yes, 0 = No)
-plot_stats = 0; 
+plot_stats = 1; 
 
 % Font specifications
-axis_expansion = 0.15;
-violin_colors = [0.85 0.325 0.098; 0 0.447 0.741];
+axis_expansion = 0.025;
+plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
 label_font_size = 17;
 title_font_size = 20;
 p_value_dims = [0.51 0.45 0.44 0.44];
@@ -24,81 +27,62 @@ if ~isequal(Save_Figs, 0)
     close all
 end
 
-%% Extract the control StartMEP metrics
-con_StartMEP = struct([]);
+%% Extract the control MVC metrics
+con_MVC = struct([]);
 for ii = 1:length(Control_Names)
-
     % Load the sig file
-    [sig] = Load_SIG('Control', Control_Names{ii}, 'StartMEP', Muscle);
+    [sig] = Load_SIG('Control', Control_Names{ii}, 'MVC', Muscle);
     % Process the sig file
     [sig] = Process_SIG(sig);
-    if strcmp(State, 'MEP')
-        [peaktopeak_MEP, ~] = Avg_StartMEP(sig, State, Muscle, 0, 0);
-        con_StartMEP{ii,1} = mean(peaktopeak_MEP{1,1});
-    else
-        [test_peaktopeak, ~] = Avg_StartMEP(sig, 'MEP', Muscle, 0, 0);
-        [peaktopeak_MEP, ~] = Avg_StartMEP(sig, State, Muscle, 0, 0);
-        con_StartMEP{ii,1} = mean(peaktopeak_MEP{1,1}) / mean(test_peaktopeak{1,1}) * 100;
-    end
+    [per_trial_Plot_Metric, ~] = Trial_MVC(sig, Plot_Choice, Muscle, 0, 0);
+    con_MVC{ii,1} = max(per_trial_Plot_Metric{1,1}, [], 'all');
 end
 
-%% Extract the SCI StartMEP metrics
-SCI_StartMEP = struct([]);
+%% Extract the SCI MVC metrics
+SCI_MVC = struct([]);
 for ii = 1:length(SCI_Names)
-    
     % Load the sig file
-    [sig] = Load_SIG('SCI', SCI_Names{ii}, 'StartMEP', Muscle);
+    [sig] = Load_SIG('SCI', SCI_Names{ii}, 'MVC', Muscle);
     % Process the sig file
     [sig] = Process_SIG(sig);
-    if strcmp(State, 'MEP')
-        [peaktopeak_MEP, ~] = Avg_StartMEP(sig, State, Muscle, 0, 0);
-        SCI_StartMEP{ii,1} = mean(peaktopeak_MEP{1,1});
-    else
-        [test_peaktopeak, ~] = Avg_StartMEP(sig, 'MEP', Muscle, 0, 0);
-        [peaktopeak_MEP, ~] = Avg_StartMEP(sig, State, Muscle, 0, 0);
-        SCI_StartMEP{ii,1} = mean(peaktopeak_MEP{1,1}) / mean(test_peaktopeak{1,1}) * 100;
-    end
+    [per_trial_Plot_Metric, ~] = Trial_MVC(sig, Plot_Choice, Muscle, 0, 0);
+    SCI_MVC{ii,1} = max(per_trial_Plot_Metric{1,1}, [], 'all');
 end
 
-%% Merge the StartMEP metrics
+%% Merge the MVC metrics
 % Control
-merged_con_StartMEP = [];
+merged_con_MVC = [];
 for ii = 1:length(Control_Names)
-    merged_con_StartMEP = cat(1, merged_con_StartMEP, con_StartMEP{ii,1});
+    merged_con_MVC = cat(1, merged_con_MVC, con_MVC{ii,1});
 end
-merged_con = repmat({'Control'}, length(merged_con_StartMEP), 1);
+merged_con = repmat({'Control'}, length(merged_con_MVC), 1);
 
 % SCI
-merged_SCI_StartMEP = [];
+merged_SCI_MVC = [];
 for ii = 1:length(SCI_Names)
-    merged_SCI_StartMEP = cat(1, merged_SCI_StartMEP, SCI_StartMEP{ii,1});
+    merged_SCI_MVC = cat(1, merged_SCI_MVC, SCI_MVC{ii,1});
 end
-merged_SCI = repmat({'SCI'}, length(merged_SCI_StartMEP), 1);
+merged_SCI = repmat({'SCI'}, length(merged_SCI_MVC), 1);
 
 %% Find the y-axis limits & determine title & y-lablel
 % Y-axis
-y_max = max([merged_con_StartMEP; merged_SCI_StartMEP]);
-y_min = min([merged_con_StartMEP; merged_SCI_StartMEP]);
+y_max = max([merged_con_MVC; merged_SCI_MVC]);
+y_min = min([merged_con_MVC; merged_SCI_MVC]);
 
 % Title & y-label
-if strcmp(State, 'MEP')
-    y_label = 'Peak-To-Peak Amplitude (mV)';
-else
-    y_label = 'Peak-To-Peak Amplitude (%)';
-    axis_expansion = axis_expansion * 100;
+y_label = strcat('Peak', {' '}, Plot_Choice);
+if strcmp(Plot_Choice, 'Force')
+    y_label = strcat(y_label, {' '}, '(N)');
+elseif strcmp(Plot_Choice, 'EMG')
+    y_label = strcat(y_label, {' '}, '(mV)');
 end
-title_string = strcat('StartMEP:', {' '}, '[', State, ']');
+title_string = strcat('Peak MVC:', {' '}, Plot_Choice);
 
-%% Plot the Violin Plot
+%% Plot the Box Plot
 
-Violin_fig = figure;
-Violin_fig.Position = [200 50 fig_size fig_size];
+plot_fig = figure;
+plot_fig.Position = [200 50 fig_size fig_size];
 hold on
-
-% Plot the box plot
-Violin_Plot([merged_con_StartMEP; merged_SCI_StartMEP], [merged_con; merged_SCI], 'GroupOrder', ...
-            {'Control', 'SCI'}, 'ViolinColor', violin_colors);
-set(gca,'fontsize', label_font_size)
 
 % Title
 title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
@@ -107,12 +91,29 @@ title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
 xlabel('Group', 'FontSize', label_font_size)
 ylabel(y_label, 'FontSize', label_font_size)
 
+% Plot
+if strcmp(plot_choice, 'Box')
+    boxplot([merged_con_MVC; merged_SCI_MVC], [merged_con; merged_SCI], 'GroupOrder', ...
+            {'Control', 'SCI'});
+    % Color the box plots
+    plot_colors = flip(plot_colors, 1);
+    box_axes = findobj(gca,'Tag','Box');
+    for pp = 1:length(box_axes)
+        patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
+    end
+elseif strcmp(plot_choice, 'Violin')
+    Violin_Plot([merged_con_MVC; merged_SCI_MVC], [merged_con; merged_SCI], 'GroupOrder', ...
+            {'Control', 'SCI'}, 'ViolinColor', plot_colors);
+end
+
+set(gca,'fontsize', label_font_size)
+
 % Set the axis-limits
 xlim([0.5 2.5]);
 ylim([y_min - axis_expansion y_max + axis_expansion]);
 
 % Do the statistics
-[~, peaktopeak_p_val] = ttest2(merged_con_StartMEP, merged_SCI_StartMEP);
+[~, peaktopeak_p_val] = ttest2(merged_con_MVC, merged_SCI_MVC);
 
 % Annotation of the p_value
 if isequal(plot_stats, 1)

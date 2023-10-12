@@ -2,11 +2,11 @@ clc
 clear
 
 params = struct( ...
-    'Group', 'Control', ... & 'Control', 'SCI'
-    'Subject', 'FR', ... % Subject Name
+    'Group', 'SCI', ... & 'Control', 'SCI'
+    'Subject', 'DM', ... % Subject Name
     'Task', 'StartMEP', ... % 'MVC', 'FWave', 'StartReact', 'StartMEP'
     'Muscle', 'ABH', ... % 'ABH', 'TA', 'SOL', 'QUAD'
-    'Date', '20231004', ... % Select the date to convert (YYYYMMDD)
+    'Date', '20231005', ... % Select the date to convert (YYYYMMDD)
     'Subject_Side', 'Right', ... % What side of the body ('Left' or 'Right')
     'GoCue_Time', 2); % Sec. (MVC = 1, FWave = 0.5, StartReact = 1, StartMEP = 2)
 

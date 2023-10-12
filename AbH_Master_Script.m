@@ -1,13 +1,13 @@
-%% Loading the Signal Files
+%% Loading the SIG Files
 clear
 clc
 close all 
 
 % Group Name ('Control', 'SCI')
-Group = 'SCI';
+Group = 'Control';
 % Subject Name
-Subject = 'PM';
-% What Task do you want to load? ('StartReact', 'StartMEP', 'FWave')
+Subject = 'MA';
+% What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
 Task = 'StartReact';
 % What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
 Muscle = 'ABH';
@@ -29,42 +29,60 @@ muscle_group = 'ABH';
 % Select the state to analyze 
 % StartReact ('F', 'F+s', 'F+S', 'All')
 % StartMEP ('MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms')
-State = 'F';
-
-Check_StartReact(sig, State, muscle_group, Save_Figs)
+State = 'All';
 
 %% Load the subject details
 % Group Name ('Control', 'SCI')
 Group = 'SCI';
-[Subjects] = Signal_File_Details(Group);
-Task = 'StartMEP';
+[Subjects] = SIG_File_Details(Group);
+Task = 'StartReact';
 
 for ii = 1:length(Subjects)
     [sig] = Load_SIG(Group, Subjects{ii}, Task, 'ABH');
     [sig] = Process_SIG(sig);
-    [cutoff_trials] = Baseline_EMG(sig, 'ABH', Plot_Figs, Save_Figs);
-    %StartMEP_BoxPlot(sig, muscle_group, Plot_Figs, Save_Figs);
+    % StartReact reaction times
+    StartReact_Ind_Violin(sig, 1, 'png');
 end
 
 %% Baseline EMG analysis
 
 [~] = Baseline_EMG(sig, muscle_group, Plot_Figs, Save_Figs);
 
+%% MVC Plotting
+
+% Do you want to overlay the force? ('Force', 'EMG')
+Plot_Choice = 'EMG';
+
+% Check that the MVC's make sense
+Check_MVC(sig, Plot_Choice, muscle_group, Save_Figs)
+
+% Per Trial MVC
+[~, ~] = Trial_MVC(sig, Plot_Choice, muscle_group, Plot_Figs, Save_Figs);
+% Average MVC
+Avg_MVC(sig, Plot_Choice, muscle_group, Save_Figs)
+
+% MVC peak amplitudes
+MVC_Ind_Violin(sig, Plot_Choice, Plot_Figs, Save_Figs);
+
 %% Peripheral Nerve Stimulation Plotting
 
-% Plot F-Waves
-[~] = Periph_Stim(sig, muscle_group, 'F', Plot_Figs, Save_Figs);
-% Plot M-Max's
-[~] = Periph_Stim(sig, muscle_group, 'M', Plot_Figs, Save_Figs);
+% Do you want to plot the F-Waves or M-Max's ('F', 'M')
+Wave_Choice = 'F';
+
+% Per Trial peripheral nerve stimulation
+[~] = Trial_PeriphStim(sig, muscle_group, Wave_Choice, Plot_Figs, Save_Figs);
+
+% Peak to peak amplitudes
+PeriphStim_Ind_Violin(sig, Wave_Choice, Plot_Figs, Save_Figs)
 
 %% StartReact Plotting
 
 % Check that the onset times make sense
 Check_StartReact(sig, State, muscle_group, Save_Figs)
 
-% Per Trial EMG
+% Per Trial StartReact
 [~, ~] = Trial_StartReact(sig, State, muscle_group, Plot_Figs, Save_Figs);
-% Average EMG
+% Average StartReact
 Avg_StartReact(sig, State, muscle_group, Save_Figs)
 % Overlap EMG plotting
 Overlap_StartReact(sig, muscle_group, Save_Figs)
@@ -86,20 +104,12 @@ Check_StartMEP(sig, State, muscle_group, Save_Figs)
 Overlap_StartMEP(sig, muscle_group, Save_Figs)
 
 % Startle MEP peak to peak amplitude
-StartMEP_BoxPlot(sig, muscle_group, Plot_Figs, Save_Figs)
-
-%% Run the force plotting functions
-
-% Average force
-Trial_SIG_Force(sig, State, muscle_group, Save_Figs)
-
-% Overlap force plotting
-OverlapSIGForce(sig, Save_Figs)
+StartMEP_Ind_Violin(sig, muscle_group, Plot_Figs, Save_Figs)
 
 %% Excel Generation
 
 % Group Name ('Control', 'SCI')
-Group = 'Control';
+Group = 'SCI';
 % Save the matrix to Excel? (1 = Yes, 0 = No)
 Save_Excel = 1;
 
@@ -107,19 +117,24 @@ Save_Excel = 1;
 [Subjects] = SIG_File_Details(Group);
 
 StartReact_Excel(Group, Subjects, Save_Excel)
+StartMEP_Excel(Group, Subjects, Save_Excel)
 
 %% Summary Plotting (Group Comparisons)
 
+% MVC
+MVC_Group_Violin(Muscle, 'EMG', Save_Figs)
+MVC_Group_Violin(Muscle, 'Force', Save_Figs)
+
 % F-Waves
-Periph_Stim_BoxPlot(Muscle, 'F', Save_Figs)
+PeriphStim_Group_Violin(Muscle, 'F', Save_Figs)
 % M-Max's
-Periph_Stim_BoxPlot(Muscle, 'M', Save_Figs)
+PeriphStim_Group_Violin(Muscle, 'M', Save_Figs)
 
 % StartMEP
-StartMEP_ViolinPlot(Muscle, 'MEP', Save_Figs)
-StartMEP_ViolinPlot(Muscle, 'MEP+50ms', Save_Figs)
-StartMEP_ViolinPlot(Muscle, 'MEP+80ms', Save_Figs)
-StartMEP_ViolinPlot(Muscle, 'MEP+100ms', Save_Figs)
+StartMEP_Group_Violin(Muscle, 'MEP', Save_Figs)
+StartMEP_Group_Violin(Muscle, 'MEP+50ms', Save_Figs)
+StartMEP_Group_Violin(Muscle, 'MEP+80ms', Save_Figs)
+StartMEP_Group_Violin(Muscle, 'MEP+100ms', Save_Figs)
 
 % StartReact
 StartReact_Group_Violin(Muscle, 'RS', Save_Figs)
@@ -128,16 +143,19 @@ StartReact_Group_Violin(Muscle, 'F', Save_Figs)
 StartReact_Group_Violin(Muscle, 'F+s', Save_Figs)
 StartReact_Group_Violin(Muscle, 'F+S', Save_Figs)
 
-% Violin plot of Δ reaction time across subjects
-Summary_ViolinPlot(Group, Save_Figs)
-
 % Polar plots of Reticulospinal gain
 for ii = 1:length(Subjects)
     [~] = Summary_PolarPlot(Group, Subjects{ii}, Save_Figs);
 end
 
-
-
+% Load the subject details
+Group = 'SCI';
+[Subjects] = SIG_File_Details(Group);
+rxn_time = struct([]);
+for ii = 1:length(Subjects)
+    [rxn_time_excel, ~] = Load_AbH_Excel(Group, Subjects{ii}, 'StartReact', 'ABH', 'F');
+    rxn_time{ii,1} = mean(rxn_time_excel{1,1}.rxn_time, 'omitnan');
+end
 
 
 

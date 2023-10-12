@@ -9,8 +9,8 @@ disp('Average Startled MEP Function:');
 [per_trial_MEP, EMG_Names] = Trial_StartMEP(sig, State, muscle_group, 0, 0);
 
 % Do you want to manually set the y-axis?
-%man_y_axis = 'No';
-man_y_axis = [-0.6, 0.1];
+man_y_axis = 'No';
+%man_y_axis = [-0.6, 0.1];
 
 % Do you want to include the stimulus artifact ('Yes', 'No')
 stim_art = 'No';

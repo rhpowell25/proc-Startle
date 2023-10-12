@@ -1,4 +1,5 @@
-function [toe_rxn_time_excel, file_names] = Load_Toe_Excel(Group, Subject, Muscle, State)
+function [AbH_excel, file_names] = Load_AbH_Excel(Group, Subject, Task, Muscle, State)
+
 %% Import the excel spreadsheets of the selected drug
 
 % Define where the excel spreadsheets are saved
@@ -10,13 +11,6 @@ Excel_Files = dir(Excel_Path);
 % Convert the struc to a table
 Excel_Files_In_Path = struct2table(Excel_Files(~([Excel_Files.isdir])));
 
-%% Find the excel files that use the desired task
-if ~strcmp(Muscle, 'All')
-    Excel_Task = find(contains(Excel_Files_In_Path.name, Muscle));
-else
-    Excel_Task = (1:length(Excel_Files_In_Path.name));
-end
-
 %% Find the excel files that are from the desired subject
 if ~strcmp(Subject, 'All')
     Excel_Subject = find(contains(Excel_Files_In_Path.name, Subject));
@@ -24,12 +18,34 @@ else
     Excel_Subject = (1:length(Excel_Files_In_Path.name));
 end
 
+%% Find the excel files that use the desired task
+if ~strcmp(Muscle, 'All')
+    Excel_Task = find(contains(Excel_Files_In_Path.name, Task));
+else
+    Excel_Task = (1:length(Excel_Files_In_Path.name));
+end
+
+%% Find the excel files that use the desired muscle
+if ~strcmp(Muscle, 'All')
+    Excel_Muscle = find(contains(Excel_Files_In_Path.name, Muscle));
+else
+    Excel_Muscle = (1:length(Excel_Files_In_Path.name));
+end
+
 %% Find the intersection of Subject & Task
-Excel_Choice = intersect(Excel_Task, Excel_Subject);
+Excel_Choice = intersect(intersect(Excel_Subject, Excel_Muscle, 'stable'), Excel_Task, 'stable');
+
+% End the function if no excel present
+if isempty(Excel_Choice)
+    disp('No excel to load!')
+    %AbH_excel = {NaN}; 
+    %file_names = {NaN};
+    %return
+end
 
 %% Build the output arrays
 
-toe_rxn_time_excel = struct([]);
+AbH_excel = struct([]);
 
 file_names = strings;
 
@@ -60,7 +76,7 @@ for xx = 1:length(Excel_Choice)
         State_idx = strcmp(temp_excel.State, State);
         temp_excel = temp_excel(State_idx,:);  
     end
-    toe_rxn_time_excel{cc,1} = temp_excel(:,:);
+    AbH_excel{cc,1} = temp_excel(:,:);
 
     % File Name
     file_names(cc,1) = strrep(Excel_File, '_', {' '});
@@ -75,18 +91,18 @@ if strcmp(Subject, 'All')
 
     % Define the merged session table
     merged_session = struct([]);
-    merged_variables = toe_rxn_time_excel{1,1}.Properties.VariableNames;
+    merged_variables = AbH_excel{1,1}.Properties.VariableNames;
     merged_session{1,1} = array2table(zeros(0, width(merged_variables)));
     merged_session{1,1}.Properties.VariableNames = merged_variables;
 
     for xx = 1:length(file_names)
-        if isempty(toe_rxn_time_excel{xx})
+        if isempty(AbH_excel{xx})
             continue
         end
-        merged_session{1,1} = [merged_session{1,1}; toe_rxn_time_excel{xx}];
+        merged_session{1,1} = [merged_session{1,1}; AbH_excel{xx}];
     end
 
-    toe_rxn_time_excel = merged_session;
+    AbH_excel = merged_session;
 
 end
 

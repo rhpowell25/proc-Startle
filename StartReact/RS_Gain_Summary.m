@@ -2,9 +2,9 @@ function [Delta_rxn_time, RS_Gain] = RS_Gain_Summary(Group, Muscle, Subject)
 
 %% Look through all the tasks
 
-[F_rxn_time_excel, ~] = Load_Toe_Excel(Group, Subject, Muscle, 'F');
-[Fs_rxn_time_excel, ~] = Load_Toe_Excel(Group, Subject, Muscle, 'F+s');
-[FS_rxn_time_excel, ~] = Load_Toe_Excel(Group, Subject, Muscle, 'F+S');
+[F_rxn_time_excel, ~] = Load_AbH_Excel(Group, Subject, 'StartReact', Muscle, 'F');
+[Fs_rxn_time_excel, ~] = Load_AbH_Excel(Group, Subject, 'StartReact', Muscle, 'F+s');
+[FS_rxn_time_excel, ~] = Load_AbH_Excel(Group, Subject, 'StartReact', Muscle, 'F+S');
 
 if ~isempty(F_rxn_time_excel)
     F_rxn_time = mean(F_rxn_time_excel{1,1}.rxn_time, 'omitnan');

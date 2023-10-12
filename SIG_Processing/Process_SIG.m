@@ -7,26 +7,29 @@ if ~isstruct(sig)
     return
 end
 
-%% Start React Processing
-% Remove trials with early EMG activation
-[sig] = Remove_FalseStarts(sig);
-
-% Remove late starts
+%% StartReact Processing
 if strcmp(sig.meta.task, 'StartReact')
+
+    % Remove trials with early EMG activation
+    [sig] = Remove_FalseStarts(sig);
+
+    % Remove late starts
     [sig] = Remove_LateStarts(sig);
+    
 end
 
-% Remove bad trials
-[sig] = Remove_BadTrials(sig);
+%% StartMEP Processing
+if strcmp(sig.meta.task, 'StartMEP')
+
+    % Remove trials with early EMG activation
+    [sig] = Remove_FalseStarts(sig);
+
+end
 
 %% Individualized processing
 
-% Had to readjust startle headphones
-if strcmp(sig.meta.date, '20230929') && strcmp(sig.meta.subject, 'KP') && strcmp(sig.meta.task, 'StartMEP')
-    for ii = 1:22
-        [sig] = Remove_Trial(sig, ii);
-    end
-end
+% Remove bad trials
+[sig] = Remove_BadTrials(sig);
 
 % Configuration was written as cMEP instead of MEP
 if strcmp(sig.meta.date, '20230906') && strcmp(sig.meta.subject, 'HE')
