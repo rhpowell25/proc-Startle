@@ -1,4 +1,4 @@
-function PeriphStim_Ind_Violin(sig, Wave_Choice, Plot_Figs, Save_Figs)
+function PeriphStim_Ind_Violin(sig, Wave_Choice, Save_Figs)
 
 %% File Description:
 
@@ -50,49 +50,47 @@ end
 
 %% Plot the violin plot
 
-if isequal(Plot_Figs, 1)
-    for ii = 1:length(muscle_groups)
+for ii = 1:length(muscle_groups)
 
-        plot_fig = figure;
-        plot_fig.Position = [200 50 fig_size fig_size];
-        hold on
+    plot_fig = figure;
+    plot_fig.Position = [200 50 fig_size fig_size];
+    hold on
 
-        % Find the y_limits
-        y_min = min(Plot_Metric(:,ii));
-        y_max = max(Plot_Metric(:,ii));
-        
-        % Title
-        title_string = strcat('Peak', {' '}, Wave_Choice, '-Wave', {' '}, Subject, ...
-            {' '}, '[', muscle_groups{ii}, ']');
-        title_strings{ii} = title_string;
-        title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
-        
-        % Plot
-        if strcmp(plot_choice, 'Box')
-            boxplot(Plot_Metric(:,ii), all_trials_metric(:,ii));
-            % Color the box plots
-            box_axes = findobj(gca,'Tag','Box');
-            patch(get(box_axes, 'XData'), get(box_axes, 'YData'), plot_colors, 'FaceAlpha', .5);
-        elseif strcmp(plot_choice, 'Violin')
-            Violin_Plot(Plot_Metric(:,ii), all_trials_metric(:,ii), 'ViolinColor', plot_colors);
-        end
-
-        set(gca,'fontsize', label_font_size)
-
-        % Set the axis-limits
-        xlim([0.5 1.5]);
-        ylim([y_min - axis_expansion, y_max + axis_expansion])
-        
-        % Labels
-        y_label = strcat('Peak', {' '}, Wave_Choice, '-Wave');
-        if strcmp(Wave_Choice, 'Force')
-            y_label = strcat(y_label, {' '}, '(N)');
-        elseif strcmp(Wave_Choice, 'EMG')
-            y_label = strcat(y_label, {' '}, '(mV)');
-        end
-        ylabel(y_label, 'FontSize', label_font_size);
+    % Find the y_limits
+    y_min = min(Plot_Metric(:,ii));
+    y_max = max(Plot_Metric(:,ii));
     
+    % Title
+    title_string = strcat('Peak', {' '}, Wave_Choice, '-Wave', {' '}, Subject, ...
+        {' '}, '[', muscle_groups{ii}, ']');
+    title_strings{ii} = title_string;
+    title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+    
+    % Plot
+    if strcmp(plot_choice, 'Box')
+        boxplot(Plot_Metric(:,ii), all_trials_metric(:,ii));
+        % Color the box plots
+        box_axes = findobj(gca,'Tag','Box');
+        patch(get(box_axes, 'XData'), get(box_axes, 'YData'), plot_colors, 'FaceAlpha', .5);
+    elseif strcmp(plot_choice, 'Violin')
+        Violin_Plot(Plot_Metric(:,ii), all_trials_metric(:,ii), 'ViolinColor', plot_colors);
     end
+
+    set(gca,'fontsize', label_font_size)
+
+    % Set the axis-limits
+    xlim([0.5 1.5]);
+    ylim([y_min - axis_expansion, y_max + axis_expansion])
+    
+    % Labels
+    y_label = strcat('Peak', {' '}, Wave_Choice, '-Wave');
+    if strcmp(Wave_Choice, 'Force')
+        y_label = strcat(y_label, {' '}, '(N)');
+    elseif strcmp(Wave_Choice, 'EMG')
+        y_label = strcat(y_label, {' '}, '(mV)');
+    end
+    ylabel(y_label, 'FontSize', label_font_size);
+
 end
 
 %% Define the save directory & save the figures

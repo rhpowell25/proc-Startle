@@ -2,13 +2,10 @@ clc
 clear
 
 params = struct( ...
-    'Group', 'SCI', ... & 'Control', 'SCI'
-    'Subject', 'DM', ... % Subject Name
-    'Task', 'StartMEP', ... % 'MVC', 'FWave', 'StartReact', 'StartMEP'
-    'Muscle', 'ABH', ... % 'ABH', 'TA', 'SOL', 'QUAD'
-    'Date', '20231005', ... % Select the date to convert (YYYYMMDD)
-    'Subject_Side', 'Right', ... % What side of the body ('Left' or 'Right')
-    'GoCue_Time', 2); % Sec. (MVC = 1, FWave = 0.5, StartReact = 1, StartMEP = 2)
+    'Group', 'Control', ... & 'Control', 'SCI'
+    'Subject', 'HP', ... % Subject Name
+    'Date', '20231107', ... % Select the date to convert (YYYYMMDD)
+    'Subject_Side', 'Right'); % What side of the body ('Left' or 'Right')
 
 % Find the file location
 base_dir = 'Z:\Lab Members\Henry\AbH Startle\Data\';
@@ -17,16 +14,19 @@ file_dir = strcat(save_dir, 'RawFiles\', params.Date, '\');
 file_type = strcat(file_dir, '*.mat');
 all_files = dir(file_type);
 
-% Find the specific file
-Task_files = contains({all_files.name}, params.Task);
-Muscle_files = contains({all_files.name}, params.Muscle);
-file_idx = find((Task_files & Muscle_files) == 1);
-% Convert the file
-file_name = all_files(file_idx).name(1:end-4);
-disp(file_name);
-[sig] = raw_to_SIG(params);
-sig.meta.side = params.Subject_Side;
-save(strcat(save_dir, file_name, '.mat'), 'sig', '-v7.3');
+for ii = 1:length(all_files)
+    % File name
+    file_name = all_files(ii).name;
+    disp(file_name);
+    % Find the task & muscle tested
+    Task_Muscle = extractAfter(file_name, strcat(params.Date, '_', params.Subject, '_'));
+    params.Task = extractBefore(Task_Muscle, '_');
+    params.Muscle = char(extractBetween(Task_Muscle, strcat(params.Task, '_'), '_'));
+    
+    [sig] = raw_to_SIG(params);
+    sig.meta.side = params.Subject_Side;
+    save(strcat(save_dir, file_name, '.mat'), 'sig', '-v7.3');
+end
 
 
 

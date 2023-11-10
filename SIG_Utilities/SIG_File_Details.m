@@ -4,27 +4,24 @@ function [Names] = SIG_File_Details(Group)
 
 Names = strings;
 if strcmp(Group, 'Control')
-    Names{1,1} = 'HE';
-    Names{2,1} = 'MA';
+    Names{1,1} = 'HK';
+    Names{2,1} = 'HE';
     Names{3,1} = 'RR';
     Names{4,1} = 'KP';
     Names{5,1} = 'FR';
-    %Names{1,1} = 'EB';
-    %Names{1,1} = 'HK';
-    %Names{1,1} = 'ST';
-    %Names{1,1} = 'JA';
-    %Names{1,1} = 'GaM';
-    %Names{1,1} = 'TP';
-    %Names{1,1} = 'AW';
-    %Names{1,1} = 'RM';
+    Names{6,1} = 'MKL';
+    Names{7,1} = 'MF';
 end
 if strcmp(Group, 'SCI')
-    Names{1,1} = 'SS';
-    Names{2,1} = 'PM';
+    Names{1,1} = 'PM';
+    Names{2,1} = 'SS';
     Names{3,1} = 'JW';
     Names{4,1} = 'WM';
     Names{5,1} = 'DM';
-    %Names{1,1} = 'MR';
+    Names{6,1} = 'MW';
+    Names{7,1} = 'DC';
+    Names{8,1} = 'DS';
+    Names{9,1} = 'EM';
 end
 
 % Force calibration

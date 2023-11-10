@@ -1,20 +1,14 @@
 
-function [cutoff_trials] = Baseline_EMG(sig, muscle_group, Plot_Figs, Save_Figs)
+function [peak2peak_EMG, rewarded_idxs] = Baseline_EMG(sig, muscle_group, Plot_Figs, Save_Figs)
 
 %% Display the function being used
 disp('Baseline EMG Histogram:');
 
 %% Basic Settings, some variable extractions, & definitions
 
-% What peak to peak baseline EMG amplitude do you want as the cut off (mV)
-cutoff_amp = 0.1;
-
 % How much before & after the gocue do you want to analyze (Sec.)
-baseline_start = 0.2;
-baseline_stop = 0;
-
-% Do you want to plot the cuttoff amplitude (1 = Yes, 0 = No)
-show_cuttoff = 0;
+before_gocue = 0.101;
+after_gocue = -0.001;
 
 % Do you want to manually set the y-axis?
 man_y_axis = 'No';
@@ -42,13 +36,13 @@ gocue_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_d
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
 % When do you want to start and stop plotting
-start_time = gocue_time - baseline_start; % Sec.
+start_time = gocue_time - before_gocue; % Sec.
 if isequal(start_time, 0)
     start_idx = 1;
 else
     start_idx = round(start_time/bin_width);
 end
-stop_time = gocue_time + baseline_stop; % Sec.; % Sec.
+stop_time = gocue_time + after_gocue; % Sec.; % Sec.
 stop_idx = round(stop_time/bin_width);
 
 % Font specifications
@@ -85,8 +79,9 @@ absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
 
 %% Find the peak to peak baseline raw EMG for each trial
 
-peak_2_peak = zeros(length(EMG), width(EMG{1}));
-for ii = 1:length(peak_2_peak)
+peak2peak_EMG = zeros(length(EMG), width(EMG{1}));
+baseline_EMG = zeros(length(EMG), (stop_idx - start_idx + 1));
+for ii = 1:length(peak2peak_EMG)
     for pp = 1:width(EMG{1})
         % Adjust for StartMEP intervals
         if contains(states{ii}, '50ms')
@@ -102,28 +97,10 @@ for ii = 1:length(peak_2_peak)
             temp_start = start_idx;
             temp_stop = stop_idx;
         end
-        peak_2_peak(ii,pp) = peak2peak(EMG{ii}(temp_start:temp_stop, pp));
+        peak2peak_EMG(ii,pp) = peak2peak(EMG{ii}(temp_start:temp_stop, pp));
+        baseline_EMG(ii,:) = EMG{ii}(temp_start:temp_stop, pp);
     end
 end
-
-%% Find cutt off peak to peak baseline raw EMG
-peak_2_peak_cuttofs = struct([]);
-for ii = 1:width(peak_2_peak)
-    peak_2_peak_cuttofs{ii} = find(peak_2_peak(:,ii) > cutoff_amp);
-end
-
-%% Combine the outliers into a single array
-cuttoff_idxs = peak_2_peak_cuttofs{1};
-for ii = 1:length(peak_2_peak_cuttofs)
-    cuttoff_idxs = cat(1, cuttoff_idxs, peak_2_peak_cuttofs{ii});
-end
-
-cuttoff_idxs = unique(cuttoff_idxs);
-
-%% Find the trial indexes of the false starts
-
-trial_idx = find(strcmp(sig.trial_info_table_header, 'number'));
-cutoff_trials = sig.trial_info_table(cuttoff_idxs, trial_idx);
 
 %% Plot a histogram of the peak to peak baseline EMG amplitudes
 
@@ -146,19 +123,13 @@ if isequal(Plot_Figs, 1)
         ylabel('Trials', 'FontSize', label_font_size);
     
         % Plot the histogram
-        histogram(peak_2_peak(:,ii), 25, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
+        histogram(peak2peak_EMG(:,ii), 25, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
     
         % Set the axis
         x_limits = xlim;
         y_limits = ylim;
         xlim([x_limits(1), x_limits(2) + axis_expansion])
         ylim([y_limits(1), y_limits(2) + axis_expansion])
-
-        % Plot the cuttoff amplitude
-        if isequal(show_cuttoff, 1)
-            line([cutoff_amp cutoff_amp], [y_limits(1) y_limits(2) + 0.25], ... 
-                'LineStyle','--', 'Color', 'k', 'LineWidth', mean_line_width)
-        end
 
         if ~ischar(man_y_axis)
             % Set the axis
@@ -174,7 +145,7 @@ if isequal(Plot_Figs, 1)
         EMG_figure.Position = [300 100 figure_width figure_height / 2];
         hold on
 
-        post_gocue_idx = 10;
+        post_gocue_idx = 5;
     
         % Titling the plot
         EMG_title = strcat('Baseline EMG:', {' '}, Subject, {' '}, Task, ...
@@ -187,7 +158,7 @@ if isequal(Plot_Figs, 1)
     
         % Adjust for StartMEP intervals
         if strcmp(Task, 'StartMEP')
-            start_time = gocue_time - baseline_start - 0.1;
+            start_time = gocue_time - before_gocue - 0.1;
             temp_start = start_idx - (0.1 / bin_width);
         end
 
@@ -201,12 +172,6 @@ if isequal(Plot_Figs, 1)
         y_limits = ylim;
         xlim([start_time, (stop_idx + post_gocue_idx)*bin_width])
         ylim([y_limits(1), y_limits(2) + axis_expansion])
-
-        % Plot the cuttoff amplitude
-        if isequal(show_cuttoff, 1)
-            line([cutoff_amp cutoff_amp], [y_limits(1) y_limits(2) + 0.25], ... 
-                'LineStyle','--', 'Color', 'k', 'LineWidth', mean_line_width)
-        end
 
         if ~ischar(man_y_axis)
             % Set the axis

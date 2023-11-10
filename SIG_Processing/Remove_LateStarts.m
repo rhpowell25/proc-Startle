@@ -10,7 +10,7 @@ cutoff_rxn_time = 0.5;
 trial_choice = 'R';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
-EMG_Choice = 'Rect';
+%EMG_Choice = 'Rect';
 
 muscle_group = sig.meta.muscle;
 
@@ -25,17 +25,18 @@ trial_info_table = cell2table(sig.trial_info_table);
 trial_info_table.Properties.VariableNames = matrix_variables;
 
 % Indexes for rewarded trials
-rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+rewarded_idxs = strcmp(trial_info_table.result, trial_choice);
 
 % Rewarded trial table
 Trial_Table = trial_info_table(rewarded_idxs, :);
 gocue_times = Trial_Table.goCueTime - Trial_Table.startTime;
 
 %% Extract the EMG & find its onset
-[~, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
+%[~, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
 
 % Find its onset
-[EMG_onset_idx] = EMGOnset(EMG);
+[EMG_onset_idx] = Detect_Onset(sig, 'All', muscle_group);
+%[EMG_onset_idx] = EMGOnset(EMG);
 
 %% Find the EMG reaction times
 rxn_time = (EMG_onset_idx * bin_width) - gocue_times;

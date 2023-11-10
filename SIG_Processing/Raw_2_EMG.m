@@ -3,12 +3,20 @@ function [EMG] = Raw_2_EMG(Raw_EMG, samp_rate)
 
 %% DC removal of the EMG
 
+%figure
+%hold on
+%plot(Raw_EMG{1,1}(:,1))
+
 Zeroed_EMG = struct([]);
 for ii = 1:length(Raw_EMG)
     for pp = 1:width(Raw_EMG{ii})
         Zeroed_EMG{ii}(:,pp) = Raw_EMG{ii}(:,pp) - mean(Raw_EMG{ii}(:,pp));
     end
 end
+
+%figure
+%hold on
+%plot(Zeroed_EMG{1,1}(:,1))
 
 %% Run a Notch filter to remove 60 Hz noise
 
@@ -28,6 +36,10 @@ for ii = 1:length(Zeroed_EMG)
     end
 end
 
+%figure
+%hold on
+%plot(notched_EMG{1,1}(:,1))
+
 %% High pass filter the EMG
 
 % Construct filter off 1/2 the sampling frequency (to prevent aliasing)
@@ -43,6 +55,10 @@ for ii = 1:length(notched_EMG)
         highpassed_EMG{ii}(:,pp) = filtfilt(b_high, a_high, notched_EMG{ii}(:,pp));
     end
 end
+
+%figure
+%hold on
+%plot(highpassed_EMG{1,1}(:,1))
 
 %% Rectify the EMG
 

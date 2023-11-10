@@ -1,6 +1,9 @@
-function StartReact_Excel(Group, Subjects, Save_Excel)
+function MVC_Excel(Group, Subjects, Save_Excel)
 
 %% Some of the analysis specifications
+
+% Do you want to analyze the EMG or force? ('Force', 'EMG')
+Plot_Choice = 'EMG';
 
 Save_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
 
@@ -20,7 +23,7 @@ for xx = 1:length(Subjects)
     for jj = 1:length(Muscle)
     
         %% Load the signal file
-        [sig] = Load_SIG(Group, Subjects{xx}, 'StartReact', Muscle{jj});
+        [sig] = Load_SIG(Group, Subjects{xx}, 'MVC', Muscle{jj});
 
         % Skip the file if unable to load
         if ~isstruct(sig)
@@ -29,9 +32,6 @@ for xx = 1:length(Subjects)
 
         % Process the sig file
         [sig] = Process_SIG(sig);
-
-        % Bin size
-        bin_width = sig.bin_width;
 
         % Date
         Date = sig.meta.date;
@@ -48,34 +48,24 @@ for xx = 1:length(Subjects)
 
         % Rewarded trial table
         Trial_Table = trial_info_table(rewarded_idxs, :);
-        gocue_times = Trial_Table.goCueTime - Trial_Table.startTime;
 
-        %% Extract the EMG & find its onset
+        %% Extract the max MVC
 
-        % EMG extraction
-        %[~, EMG] = Extract_EMG(sig, EMG_Choice, Muscle, rewarded_idxs);
+        [~, all_trials_max_MVC, ~] = Trial_MVC(sig, Plot_Choice, Muscle{jj}, 0, 0);
 
-        % Find its onset
-        [EMG_onset_idx] = Detect_Onset(sig, 'All', Muscle{jj});
-        %[EMG_onset_idx] = EMGOnset(EMG);
-    
-        %% Find the EMG reaction times
-        rxn_time = (EMG_onset_idx * bin_width) - gocue_times;
+        %% Create the excel table
     
         % Create the table addition
         excel_length = length(Trial_Table.number);
         excel_number = array2table(NaN(excel_length, 1));
         excel_number.Properties.VariableNames = {'Trial'};
         excel_number.Trial = Trial_Table.number;
-        excel_state = array2table(NaN(excel_length, 1));
-        excel_state.Properties.VariableNames = {'State'};
-        excel_state.State = Trial_Table.State;
-        excel_rxn_time = array2table(NaN(excel_length, 1));
-        excel_rxn_time.Properties.VariableNames = {'rxn_time'};
-        excel_rxn_time.rxn_time = rxn_time;
+        excel_MVC = array2table(NaN(excel_length, 1));
+        excel_MVC.Properties.VariableNames = {'MVC_EMG'};
+        excel_MVC.MVC_EMG = all_trials_max_MVC;
     
         % Join the tables
-        xds_excel = [excel_number excel_state excel_rxn_time];
+        xds_excel = [excel_number excel_MVC];
     
         %% Save to Excel
     

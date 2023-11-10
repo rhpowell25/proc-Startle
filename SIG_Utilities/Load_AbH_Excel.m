@@ -1,9 +1,9 @@
-function [AbH_excel, file_names] = Load_AbH_Excel(Group, Subject, Task, Muscle, State)
+function [AbH_excel, file_names] = Load_AbH_Excel(Sampling_Params)
 
 %% Import the excel spreadsheets of the selected drug
 
 % Define where the excel spreadsheets are saved
-Base_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
+Base_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Sampling_Params.Group, '\');
 
 % Identify all the excel files in the data path
 Excel_Path = strcat(Base_Path, '*.xlsx');
@@ -12,22 +12,22 @@ Excel_Files = dir(Excel_Path);
 Excel_Files_In_Path = struct2table(Excel_Files(~([Excel_Files.isdir])));
 
 %% Find the excel files that are from the desired subject
-if ~strcmp(Subject, 'All')
-    Excel_Subject = find(contains(Excel_Files_In_Path.name, Subject));
+if ~strcmp(Sampling_Params.Subject, 'All')
+    Excel_Subject = find(contains(Excel_Files_In_Path.name, Sampling_Params.Subject));
 else
     Excel_Subject = (1:length(Excel_Files_In_Path.name));
 end
 
 %% Find the excel files that use the desired task
-if ~strcmp(Muscle, 'All')
-    Excel_Task = find(contains(Excel_Files_In_Path.name, Task));
+if ~strcmp(Sampling_Params.Muscle, 'All')
+    Excel_Task = find(contains(Excel_Files_In_Path.name, Sampling_Params.Task));
 else
     Excel_Task = (1:length(Excel_Files_In_Path.name));
 end
 
 %% Find the excel files that use the desired muscle
-if ~strcmp(Muscle, 'All')
-    Excel_Muscle = find(contains(Excel_Files_In_Path.name, Muscle));
+if ~strcmp(Sampling_Params.Muscle, 'All')
+    Excel_Muscle = find(contains(Excel_Files_In_Path.name, Sampling_Params.Muscle));
 else
     Excel_Muscle = (1:length(Excel_Files_In_Path.name));
 end
@@ -72,8 +72,8 @@ for xx = 1:length(Excel_Choice)
     temp_excel = readtable(char(table_path));
 
     % Subsample according to State
-    if ~strcmp(State, 'All')
-        State_idx = strcmp(temp_excel.State, State);
+    if ~strcmp(Sampling_Params.State, 'All')
+        State_idx = strcmp(temp_excel.State, Sampling_Params.State);
         temp_excel = temp_excel(State_idx,:);  
     end
     AbH_excel{cc,1} = temp_excel(:,:);
@@ -87,7 +87,7 @@ for xx = 1:length(Excel_Choice)
 end
 
 %% Merge all the experiments if you selected 'All' for Subject
-if strcmp(Subject, 'All')
+if strcmp(Sampling_Params.trial_sessions, 'All')
 
     % Define the merged session table
     merged_session = struct([]);

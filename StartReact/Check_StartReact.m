@@ -12,7 +12,7 @@ end
 %% Basic Settings, some variable extractions, & definitions
 
 % Do you want to plot the rewarded or failed trials ('R' or 'F')
-trial_choice = 'F';
+trial_choice = 'R';
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
 EMG_Choice = 'Rect';
@@ -22,12 +22,7 @@ Subject = sig.meta.subject;
 
 bin_width = sig.bin_width;
 
-% Rounding to remove floating point errors
-round_digit = abs(floor(log10(bin_width)));
-
-% Time of the go cue
-gocue_time = unique(round((sig.trial_gocue_time - sig.trial_start_time), round_digit)); % Sec.
-gocue_idx = round(gocue_time/bin_width);
+GoCue_idx = 1.1 / bin_width;
 
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
@@ -59,8 +54,22 @@ end
 %% Extract the EMG & find its onset
 [EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
 
-% Find its onset
-[EMG_onset_idx] = EMGOnset(EMG);
+[EMG_onset_idx] = Detect_Onset(sig, State, muscle_group);
+
+%% Find the average and standard deviation 
+
+avg_baseline = zeros(1, width(EMG{1,1}));
+std_baseline = zeros(1, width(EMG{1,1}));
+for ii = 1:width(EMG{1,1})
+    baseline_EMG = zeros(length(EMG), length(EMG{1,1}(1:GoCue_idx, ii)));
+    for pp = 1:length(EMG)
+        baseline_EMG(pp,:) = EMG{pp}(1:GoCue_idx, ii);
+    end
+    % Find the mean and standard deviation
+    avg_baseline_EMG = mean(baseline_EMG);
+    avg_baseline(1,ii) = mean(avg_baseline_EMG);
+    std_baseline(1,ii) = mean(std(baseline_EMG));
+end
 
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(EMG{1,1}));
@@ -104,8 +113,7 @@ for ii = 1:width(all_trials_EMG{ii})
         plot(absolute_timing(1:stop_idx), all_trials_EMG{pp}(1:stop_idx,ii))
 
         % Horizontal line indicating cutoff 
-        EMG_std = mean(all_trials_EMG{pp}(1:gocue_idx,ii)) + ...
-            5*std(all_trials_EMG{pp}(1:gocue_idx,ii));
+        EMG_std = avg_baseline + 5*std_baseline;
         line([absolute_timing(1) absolute_timing(stop_idx)], [EMG_std EMG_std], ... 
             'LineStyle','--', 'Color', 'k')
 
@@ -117,7 +125,7 @@ for ii = 1:width(all_trials_EMG{ii})
         end
         
         % Plot the EMG onset as red dots
-        if ~isnan(EMG_onset_idx(ii,pp))
+        if ~EMG_onset_idx(ii,pp) == 0
             plot(absolute_timing(EMG_onset_idx(ii,pp)), ...
                 all_trials_EMG{pp,1}(EMG_onset_idx(ii,pp),ii), ...
                 'Marker', '.', 'Color', 'r', 'Markersize', 15);
@@ -126,7 +134,7 @@ for ii = 1:width(all_trials_EMG{ii})
         % Collect the y-axis
         y_limits = ylim;
 
-        if ~isnan(EMG_onset_idx(ii,pp))
+        if ~EMG_onset_idx(ii,pp) == 0
             % Vertical line indicating EMG onset
             line([absolute_timing(EMG_onset_idx(ii,pp)) absolute_timing(EMG_onset_idx(ii,pp))], ...
                 [y_limits(1) y_limits(2)], 'LineStyle','--', 'Color', 'r')

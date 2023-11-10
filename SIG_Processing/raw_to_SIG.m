@@ -2,11 +2,20 @@ function [sig] = raw_to_SIG(params)
 %% Extract the paramaters
 
 Subject = params.Subject;
+Group = params.Group;
 Date = params.Date;
 Subject_Side = params.Subject_Side;
 Task = params.Task;
 Muscle = params.Muscle;
-GoCue_Time = params.GoCue_Time;
+
+% Go cue time
+if strcmp(Task, 'MVC') || strcmp(Task, 'StartReact')
+    GoCue_Time = 1;
+elseif strcmp(Task, 'MaxMEP') || strcmp(Task, 'StartMEP')
+    GoCue_Time = 2;
+elseif strcmp(Task, 'FWave')
+    GoCue_Time = 0.5;
+end
 
 %% Load the signal file & extract some basic information
 [signal_file] = Load_Raw_SIG(params);
@@ -113,6 +122,7 @@ sig.meta.date = Date;
 sig.meta.task = Task;
 sig.meta.muscle = Muscle;
 sig.meta.subject = Subject;
+sig.meta.group = Group;
 sig.meta.side = Subject_Side;
 
 % Bin width

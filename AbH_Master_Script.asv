@@ -35,9 +35,9 @@ State = 'All';
 % Group Name ('Control', 'SCI')
 Group = 'SCI';
 [Subjects] = SIG_File_Details(Group);
-Task = 'MVC';
+Task = 'StartReact';
 
-for ii = 9%1:length(Subjects)
+for ii = 1:length(Subjects)
     [sig] = Load_SIG(Group, Subjects{ii}, Task, 'ABH');
     [sig] = Process_SIG(sig);
     %[~] = Trial_PeriphStim(sig, 'ABH', 'F', 1, 'png');

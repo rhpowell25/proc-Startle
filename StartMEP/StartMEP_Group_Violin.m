@@ -2,6 +2,12 @@ function StartMEP_Group_Violin(Muscle, State, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
+Sampling_Params = struct( ...
+    'Task', 'StartMEP', ... % What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
+    'Muscle', Muscle, ... % What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
+    'State', State, ... % Select the state to analyze 
+    'trial_sessions', 'Ind'); % Individual Sessions or All Sessions? ('Ind' vs 'All')
+
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
 plot_choice = 'Violin';
 
@@ -9,22 +15,20 @@ plot_choice = 'Violin';
 [Control_Names] = SIG_File_Details('Control');
 [SCI_Names] = SIG_File_Details('SCI');
 
-% What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
-Task = 'StartMEP';
-
 % Do you want to show the statistics (1 = Yes, 0 = No)
 plot_stats = 0;
 
 % Font specifications
-axis_expansion = 0.15;
-mean_line_width = 2;
+line_width = 3;
+axis_expansion = 0.5;
+mean_line_width = 4;
 plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
-label_font_size = 17;
-title_font_size = 20;
+label_font_size = 25;
+title_font_size = 25;
 p_value_dims = [0.51 0.45 0.44 0.44];
-legend_size = 15;
+legend_size = 25;
 font_name = 'Arial';
-fig_size = 600;
+fig_size = 1000;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_Figs, 0)
@@ -32,46 +36,74 @@ if ~isequal(Save_Figs, 0)
 end
 
 %% Extract the control StartMEP metrics
+Sampling_Params.Group = 'Control';
 con_StartMEP = struct([]);
 for ii = 1:length(Control_Names)
-
+    Sampling_Params.Subject = Control_Names{ii};
     if strcmp(State, 'MEP')
-        [AbH_excel, ~] = Load_AbH_Excel('Control', Control_Names{ii}, Task, Muscle, State);
-        con_StartMEP{ii,1} = mean(AbH_excel{1,1}.peaktopeak_MEP);
+        [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
+        Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
+        MEP_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
+        if ~isempty(AbH_excel)
+            con_StartMEP{ii,1} = table2array(mean(AbH_excel{1,1}(MEP_idx, Muscle_idx), 'omitnan'));
+        end
     else
-        [AbH_excel, ~] = Load_AbH_Excel('Control', Control_Names{ii}, Task, Muscle, 'MEP');
-        test_peaktopeak = mean(AbH_excel{1,1}.peaktopeak_MEP);
-        [AbH_excel, ~] = Load_AbH_Excel('Control', Control_Names{ii}, Task, Muscle, State);
-        con_StartMEP{ii,1} = mean(AbH_excel{1,1}.peaktopeak_MEP) / test_peaktopeak * 100;
+        Sampling_Params.State = 'MEP';
+        [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
+        Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
+        if ~isempty(AbH_excel)
+            test_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
+            test_peaktopeak = table2array(mean(AbH_excel{1,1}(test_idx, Muscle_idx), 'omitnan'));
+            Sampling_Params.State = State;
+            [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
+            Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
+            cond_idx = strcmp(AbH_excel{1,1}.State, State);
+            cond_amps = table2array(AbH_excel{1,1}(cond_idx, Muscle_idx));
+            con_StartMEP{ii,1} = mean(cond_amps, 'omitnan') / test_peaktopeak * 100;
+        end
     end
 end
 
 %% Extract the SCI StartMEP metrics
+Sampling_Params.Group = 'SCI';
 SCI_StartMEP = struct([]);
 for ii = 1:length(SCI_Names)
-    
+    Sampling_Params.Subject = SCI_Names{ii};
     if strcmp(State, 'MEP')
-        [AbH_excel, ~] = Load_AbH_Excel('SCI', SCI_Names{ii}, Task, Muscle, State);
-        SCI_StartMEP{ii,1} = mean(AbH_excel{1,1}.peaktopeak_MEP);
+        [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
+        Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
+        MEP_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
+        if ~isempty(AbH_excel)
+            SCI_StartMEP{ii,1} = table2array(mean(AbH_excel{1,1}(MEP_idx, Muscle_idx), 'omitnan'));
+        end
     else
-        [AbH_excel, ~] = Load_AbH_Excel('SCI', SCI_Names{ii}, Task, Muscle, 'MEP');
-        test_peaktopeak = mean(AbH_excel{1,1}.peaktopeak_MEP);
-        [AbH_excel, ~] = Load_AbH_Excel('SCI', SCI_Names{ii}, Task, Muscle, State);
-        SCI_StartMEP{ii,1} = mean(AbH_excel{1,1}.peaktopeak_MEP) / test_peaktopeak * 100;
+        Sampling_Params.State = 'MEP';
+        [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
+        Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
+        if ~isempty(AbH_excel)
+            test_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
+            test_peaktopeak = table2array(mean(AbH_excel{1,1}(test_idx, Muscle_idx), 'omitnan'));
+            Sampling_Params.State = State;
+            [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
+            Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
+            cond_idx = strcmp(AbH_excel{1,1}.State, State);
+            cond_amps = table2array(AbH_excel{1,1}(cond_idx, Muscle_idx));
+            SCI_StartMEP{ii,1} = mean(cond_amps, 'omitnan') / test_peaktopeak * 100;
+        end
     end
 end
 
 %% Merge the StartMEP metrics
 % Control
 merged_con_StartMEP = [];
-for ii = 1:length(Control_Names)
+for ii = 1:length(con_StartMEP)
     merged_con_StartMEP = cat(1, merged_con_StartMEP, con_StartMEP{ii,1});
 end
 merged_con = repmat({'Control'}, length(merged_con_StartMEP), 1);
 
 % SCI
 merged_SCI_StartMEP = [];
-for ii = 1:length(SCI_Names)
+for ii = 1:length(SCI_StartMEP)
     merged_SCI_StartMEP = cat(1, merged_SCI_StartMEP, SCI_StartMEP{ii,1});
 end
 merged_SCI = repmat({'SCI'}, length(merged_SCI_StartMEP), 1);
@@ -125,16 +157,31 @@ set(gca,'fontsize', label_font_size)
 xlim([0.5 2.5]);
 ylim([y_min - axis_expansion y_max + axis_expansion]);
 
+% Axis Editing
+figure_axes = gca;
+set(gca,'linewidth', line_width)
+% Set ticks to outside
+set(figure_axes,'TickDir','out');
+% Remove the top and right tick marks
+set(figure_axes,'box','off')
+
+% Only label every other tick
+y_labels = string(figure_axes.YAxis.TickLabels);
+y_labels(2:2:end) = NaN;
+figure_axes.YAxis.TickLabels = y_labels;
+
 % Line at the 100% 
 if ~strcmp(State, 'MEP')
     line([0.5 2.5], [100 100], ... 
         'LineStyle','--', 'Color', 'k', 'LineWidth', mean_line_width)
 end
-% Do the statistics
-[~, peaktopeak_p_val] = ttest2(merged_con_StartMEP, merged_SCI_StartMEP);
 
 % Annotation of the p_value
 if isequal(plot_stats, 1)
+
+    % Do the statistics
+    [~, peaktopeak_p_val] = ttest2(merged_con_StartMEP, merged_SCI_StartMEP);
+
     if round(peaktopeak_p_val, 3) > 0
         p_value_string = strcat('p =', {' '}, mat2str(round(peaktopeak_p_val, 3)));
         p_value_string = {char(p_value_string)};

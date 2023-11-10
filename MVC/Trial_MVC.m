@@ -1,4 +1,4 @@
-function [per_trial_Plot_Metric, Plot_Names] = Trial_MVC(sig, Plot_Choice, muscle_group, Plot_Figs, Save_Figs)
+function [per_trial_Plot_Metric, MVC_max, Plot_Names] = Trial_MVC(sig, Plot_Choice, muscle_group, Plot_Figs, Save_Figs)
 
 %% Display the function being used
 disp('Per Trial MVC Function:');
@@ -28,6 +28,11 @@ Subject = sig.meta.subject;
 
 % Bin width and baseline indices
 bin_width = sig.bin_width;
+
+% Window to calculate the peak MVC
+half_window_time = 0.5; % Sec.
+half_window_size = half_window_time / bin_width; % Bins
+step_size = 1; % Bins
 
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
@@ -59,6 +64,17 @@ if isequal(Plot_Choice, 'EMG')
 elseif isequal(Plot_Choice, 'Force')
     Plot_Names = {'Force'};
     [Plot_Metric] = Extract_Force(sig, 1, 1, rewarded_idxs);
+end
+
+%% Find the average peak of each MVC
+MVC_max = zeros(length(Plot_Metric), 1);
+for ii = 1:length(Plot_Metric)
+    % Sliding average
+    [sliding_avg, ~, ~] = ...
+        Sliding_Window(Plot_Metric{ii,1}, half_window_size, step_size);
+    % Find the max MVC
+    temp_2 = sliding_avg(sliding_avg == max(sliding_avg));
+    MVC_max(ii) = temp_2(1);
 end
 
 %% Define the absolute timing

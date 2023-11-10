@@ -1,16 +1,9 @@
-function StartReact_Group_Violin(Muscle, State, Save_Figs)
+function AbH_Violin_Plot(Sampling_Params, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
-Sampling_Params = struct( ...
-    'Subject', 'All', ... % Subject Name
-    'Task', 'StartReact', ... % What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
-    'Muscle', Muscle, ... % What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
-    'State', State, ... % Select the state to analyze 
-    'trial_sessions', 'Ind'); % Individual Sessions or All Sessions? ('Ind' vs 'All')
-
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
-plot_choice = 'Box';
+plot_choice = 'Violin';
 
 % Do you want to show the statistics (1 = Yes, 0 = No)
 plot_stats = 0; 
@@ -31,40 +24,80 @@ if ~isequal(Save_Figs, 0)
     close all
 end
 
-%% Extract the control StartReact metrics
+%% Extract the control excel files
 Sampling_Params.Group = 'Control';
-if strcmp(State, 'RS')
-    [~, con_StartReact] = RS_Gain_Summary(Sampling_Params);
-elseif strcmp(State, 'Delta')
-    [con_StartReact, ~] = RS_Gain_Summary(Sampling_Params);
-else
-    [rxn_time_excel, ~] = Load_AbH_Excel(Sampling_Params);
-    con_StartReact = zeros(length(rxn_time_excel), 1);
-    for ii = 1:length(con_StartReact)
-        con_StartReact(ii,1) = mean(rxn_time_excel{ii,1}.rxn_time, 'omitnan');
-    end
-end
-merged_con = repmat({'Control'}, length(con_StartReact), 1);
+[con_excel, ~] = Load_AbH_Excel(Sampling_Params);
 
-%% Extract the SCI StartReact metrics
+%% Extract the SCI excel files
 Sampling_Params.Group = 'SCI';
-if strcmp(State, 'RS')
-    [~, SCI_StartReact] = RS_Gain_Summary(Sampling_Params);
-elseif strcmp(State, 'Delta')
-    [SCI_StartReact, ~] = RS_Gain_Summary(Sampling_Params);
-else
-    [rxn_time_excel, ~] = Load_AbH_Excel(Sampling_Params);
-    SCI_StartReact = zeros(length(rxn_time_excel), 1);
-    for ii = 1:length(SCI_StartReact)
-        SCI_StartReact(ii,1) = mean(rxn_time_excel{ii,1}.rxn_time, 'omitnan');
+[SCI_excel, ~] = Load_AbH_Excel(Sampling_Params);
+
+%% If you're plotting MVC's
+
+if strcmp(Sampling_Params.Task, 'MVC')
+    % Controls
+    con_plot = zeros(length(con_excel), 1);
+    for ii = 1:length(con_plot)
+        if strcmp(Plot_Choice, 'EMG') 
+            MVC_amp = con_excel{ii,1}.MVC_EMG;
+        elseif strcmp(Plot_Choice, 'Force')
+            MVC_amp = con_excel{ii,1}.MVC_Force;
+        end
+        con_plot(ii,1) = max(MVC_amp);
     end
+    con_label = repmat({'Control'}, length(con_plot), 1);
+    
+    % SCI
+    SCI_plot = zeros(length(SCI_excel), 1);
+    for ii = 1:length(SCI_plot)
+        if strcmp(Plot_Choice, 'EMG') 
+            MVC_amp = SCI_excel{ii,1}.MVC_EMG;
+        elseif strcmp(Plot_Choice, 'Force')
+            MVC_amp = SCI_excel{ii,1}.MVC_Force;
+        end
+        SCI_plot(ii,1) = max(MVC_amp);
+    end
+    SCI_label = repmat({'SCI'}, length(SCI_plot), 1);
 end
-merged_SCI = repmat({'SCI'}, length(SCI_StartReact), 1);
+
+%% If you're plotting StartReact
+
+if strcmp(Sampling_Params.Task, 'StartReact')
+    % Controls
+    if strcmp(Sampling_Params.State, 'RS')
+        Sampling_Params.Group = 'Control';
+        [~, con_plot] = RS_Gain_Summary(Sampling_Params);
+    elseif strcmp(Sampling_Params.State, 'Delta')
+        Sampling_Params.Group = 'Control';
+        [con_plot, ~] = RS_Gain_Summary(Sampling_Params);
+    else
+        con_plot = zeros(length(con_excel), 1);
+        for ii = 1:length(con_plot)
+            con_plot(ii,1) = mean(con_excel{ii,1}.rxn_time, 'omitnan');
+        end
+    end
+    con_label = repmat({'Control'}, length(con_plot), 1);
+    
+    % SCI
+    if strcmp(Sampling_Params.State, 'RS')
+        Sampling_Params.Group = 'SCI';
+        [~, SCI_plot] = RS_Gain_Summary(Sampling_Params);
+    elseif strcmp(Sampling_Params.State, 'Delta')
+        Sampling_Params.Group = 'SCI';
+        [SCI_plot, ~] = RS_Gain_Summary(Sampling_Params);
+    else
+        SCI_plot = zeros(length(SCI_excel), 1);
+        for ii = 1:length(SCI_plot)
+            SCI_plot(ii,1) = mean(SCI_excel{ii,1}.rxn_time, 'omitnan');
+        end
+    end
+    SCI_label = repmat({'SCI'}, length(SCI_plot), 1);
+end
 
 %% Find the y-axis limits & determine title & y-lablel
 % Y-axis
-y_max = max([con_StartReact; SCI_StartReact]);
-y_min = min([con_StartReact; SCI_StartReact]);
+y_max = max([con_plot; SCI_StartReact]);
+y_min = min([con_plot; SCI_StartReact]);
 
 % Title & y-label
 y_label = 'Time (sec.)';
@@ -89,7 +122,7 @@ hold on
 
 % Plot
 if strcmp(plot_choice, 'Box')
-    boxplot([con_StartReact; SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
+    boxplot([con_plot; SCI_StartReact], [con_label; SCI_label], 'GroupOrder', ...
             {'Control', 'SCI'});
     % Color the box plots
     plot_colors = flip(plot_colors, 1);
@@ -98,7 +131,7 @@ if strcmp(plot_choice, 'Box')
         patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
     end
 elseif strcmp(plot_choice, 'Violin')
-    Violin_Plot([con_StartReact; SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
+    Violin_Plot([con_plot; SCI_StartReact], [con_label; SCI_label], 'GroupOrder', ...
             {'Control', 'SCI'}, 'ViolinColor', plot_colors);
 end
 
@@ -126,7 +159,7 @@ y_labels(2:2:end) = NaN;
 figure_axes.YAxis.TickLabels = y_labels;
 
 % Do the statistics
-[~, peaktopeak_p_val] = ttest2(con_StartReact, SCI_StartReact);
+[~, peaktopeak_p_val] = ttest2(con_plot, SCI_StartReact);
 
 % Annotation of the p_value
 if isequal(plot_stats, 1)

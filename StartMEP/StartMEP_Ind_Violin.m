@@ -1,4 +1,4 @@
-function StartMEP_Ind_Violin(sig, muscle_group, Plot_Figs, Save_Figs)
+function StartMEP_Ind_Violin(sig, Save_Figs)
 
 %% File Description:
 
@@ -12,20 +12,19 @@ function StartMEP_Ind_Violin(sig, muscle_group, Plot_Figs, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
+Sampling_Params = struct( ...
+    'Group', sig.meta.group, ... % Group Name ('Control', 'SCI')
+    'Subject', sig.meta.subject, ... % Subject Name
+    'Task', sig.meta.task, ... % What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
+    'Muscle', sig.meta.muscle, ... % What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
+    'State', 'All', ... % Select the state to analyze 
+    'trial_sessions', 'Ind'); % Individual Sessions or All Sessions? ('Ind' vs 'All')
+
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
 plot_choice = 'Box';
 
-% Title info
-Subject = sig.meta.subject;
-Task = sig.meta.task;
-
-% Find all the states tested
-State_idx = strcmp(sig.trial_info_table_header, 'State');
-State_list = strings;
-for ii = 1:length(sig.trial_info_table)
-    State_list{ii} = char(sig.trial_info_table{ii,State_idx});
-end
-States = unique(State_list)';
+% Do you want to show the statistics (1 = Yes, 0 = No)
+%plot_stats = 1;
 
 % Font specifications
 %plot_colors = [0 0 0; 1 0 0; 0 0.5 0];
@@ -40,72 +39,50 @@ if ~isequal(Save_Figs, 0)
     close all
 end
 
-%% Loop through all the muscles & states
-
-peaktopeak_MEP = struct([]);
-for ii = 1:length(States)
-    [peaktopeak_MEP{ii,1}, EMG_Names] = Avg_StartMEP(sig, States{ii}, muscle_group, 0, 0);
-end
+%% Load the StartMEP excel
+[StartMEP_excel, ~] = Load_AbH_Excel(Sampling_Params);
+StartMEP_amp = StartMEP_excel{1,1}.peaktopeak_MEP;
+States = string(StartMEP_excel{1,1}.State);
 
 %% Plot the violin plot
 
-if isequal(Plot_Figs, 1)
-    for ii = 1:length(EMG_Names)
-   
-        % Put all peak-to-peak amplitudes & states into a single array
-        all_trials_peaktopeak = [];
-        for pp = 1:length(States)
-            all_trials_peaktopeak = cat(1,all_trials_peaktopeak, peaktopeak_MEP{pp,1}{ii,1});
-            if isequal(pp,1)
-                all_trials_states = repmat(States(pp,1), length(peaktopeak_MEP{pp,1}{ii,1}), 1);
-            else
-                all_trials_states = cat(1, all_trials_states, ...
-                    repmat(States(pp,1), length(peaktopeak_MEP{pp,1}{ii,1}), 1));
-            end
-        end
+plot_fig = figure;
+plot_fig.Position = [200 50 fig_size fig_size];
+hold on
 
-        violin_fig = figure;
-        violin_fig.Position = [200 50 fig_size fig_size];
-        hold on
+% Title
+EMG_title = strcat('Peak to Peak Amplitude:', {' '}, Sampling_Params.Subject, {' '}, Sampling_Params.Task, ...
+    {' '}, '[', Sampling_Params.Muscle, ']');
+title(EMG_title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
-        % Find the y_limits
-        y_min = min(all_trials_peaktopeak);
-        y_max = max(all_trials_peaktopeak);
-        
-        % Title
-        EMG_title = strcat('Peak to Peak Amplitude:', {' '}, Subject, {' '}, Task, ...
-            {' '}, '[', EMG_Names{ii}, ']');
-        title(EMG_title, 'FontSize', title_font_size, 'Interpreter', 'none');
-        
-        % Plot
-        if strcmp(plot_choice, 'Box')
-            boxplot(all_trials_peaktopeak, all_trials_states, 'GroupOrder', ...
-                {'MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms'});
-            % Color the box plots
-            plot_colors = flip(plot_colors, 1);
-            box_axes = findobj(gca,'Tag','Box');
-            for pp = 1:length(box_axes)
-                patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
-            end
-        elseif strcmp(plot_choice, 'Violin')
-            Violin_Plot(all_trials_peaktopeak, all_trials_states, 'GroupOrder', ...
-                {'MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms'}, 'ViolinColor', plot_colors);
-        end
+% Labels
+xlabel('States', 'FontSize', label_font_size)
+ylabel('Peak to Peak Amplitude (mV)', 'FontSize', label_font_size);
 
-        %Violin_Plot(all_trials_peaktopeak, all_trials_states, 'GroupOrder', ...
-        %    {'MEP', 'MEP+50ms', 'MEP+80ms'}, 'ViolinColor', state_colors);
-
-        set(gca,'fontsize', label_font_size)
-
-        xlim([0.5 4.5]);
-        ylim([y_min - axis_expansion, y_max + axis_expansion])
-        
-        % Labels
-        xlabel('States', 'FontSize', label_font_size)
-        ylabel('Peak to Peak Amplitude (mV)', 'FontSize', label_font_size);
-        
+% Plot
+if strcmp(plot_choice, 'Box')
+    boxplot(StartMEP_amp, States, 'GroupOrder', ...
+        {'MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms'});
+    % Color the box plots
+    plot_colors = flip(plot_colors, 1);
+    box_axes = findobj(gca,'Tag','Box');
+    for pp = 1:length(box_axes)
+        patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
     end
+elseif strcmp(plot_choice, 'Violin')
+    Violin_Plot(StartMEP_amp, States, 'GroupOrder', ...
+        {'MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms'}, 'ViolinColor', plot_colors);
 end
+
+set(gca,'fontsize', label_font_size)
+
+% Find the y_limits
+y_min = min(StartMEP_amp);
+y_max = max(StartMEP_amp);
+
+% Set the axis-limits
+xlim([0.5 4.5]);
+ylim([y_min - axis_expansion, y_max + axis_expansion])
 
 %% Define the save directory & save the figures
 if ~isequal(Save_Figs, 0)

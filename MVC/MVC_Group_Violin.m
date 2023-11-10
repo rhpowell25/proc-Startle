@@ -2,25 +2,29 @@ function MVC_Group_Violin(Muscle, Plot_Choice, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
-% Do you want to use a boxplot or violinplot? ('Box', 'Violin')
-plot_choice = 'Violin';
+Sampling_Params = struct( ...
+    'Subject', 'All', ... % Subject Name
+    'Task', 'MVC', ... % What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
+    'Muscle', Muscle, ... % What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
+    'State', 'All', ... % Select the state to analyze 
+    'trial_sessions', 'Ind'); % Individual Sessions or All Sessions? ('Ind' vs 'All')
 
-% Load all subject details from the group
-[Control_Names] = SIG_File_Details('Control');
-[SCI_Names] = SIG_File_Details('SCI');
+% Do you want to use a boxplot or violinplot? ('Box', 'Violin')
+plot_choice = 'Box';
 
 % Do you want to show the statistics (1 = Yes, 0 = No)
 plot_stats = 1; 
 
 % Font specifications
+line_width = 3;
 axis_expansion = 0.025;
 plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
-label_font_size = 17;
-title_font_size = 20;
+label_font_size = 25;
+title_font_size = 25;
 p_value_dims = [0.51 0.45 0.44 0.44];
-legend_size = 15;
+legend_size = 25;
 font_name = 'Arial';
-fig_size = 600;
+fig_size = 1000;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_Figs, 0)
@@ -28,46 +32,41 @@ if ~isequal(Save_Figs, 0)
 end
 
 %% Extract the control MVC metrics
-con_MVC = struct([]);
-for ii = 1:length(Control_Names)
-    % Load the sig file
-    [sig] = Load_SIG('Control', Control_Names{ii}, 'MVC', Muscle);
-    % Process the sig file
-    [sig] = Process_SIG(sig);
-    [per_trial_Plot_Metric, ~] = Trial_MVC(sig, Plot_Choice, Muscle, 0, 0);
-    con_MVC{ii,1} = max(per_trial_Plot_Metric{1,1}, [], 'all');
+
+Sampling_Params.Group = 'Control';
+[MVC_excel, ~] = Load_AbH_Excel(Sampling_Params);
+con_MVC = zeros(length(MVC_excel), 1);
+
+for ii = 1:length(con_MVC)
+    if strcmp(Plot_Choice, 'EMG') 
+        MVC_amp = MVC_excel{ii,1}.MVC_EMG;
+    elseif strcmp(Plot_Choice, 'Force')
+        MVC_amp = MVC_excel{ii,1}.MVC_Force;
+    end
+    con_MVC(ii,1) = max(MVC_amp);
 end
+merged_con = repmat({'Control'}, length(con_MVC), 1);
 
 %% Extract the SCI MVC metrics
-SCI_MVC = struct([]);
-for ii = 1:length(SCI_Names)
-    % Load the sig file
-    [sig] = Load_SIG('SCI', SCI_Names{ii}, 'MVC', Muscle);
-    % Process the sig file
-    [sig] = Process_SIG(sig);
-    [per_trial_Plot_Metric, ~] = Trial_MVC(sig, Plot_Choice, Muscle, 0, 0);
-    SCI_MVC{ii,1} = max(per_trial_Plot_Metric{1,1}, [], 'all');
-end
 
-%% Merge the MVC metrics
-% Control
-merged_con_MVC = [];
-for ii = 1:length(Control_Names)
-    merged_con_MVC = cat(1, merged_con_MVC, con_MVC{ii,1});
-end
-merged_con = repmat({'Control'}, length(merged_con_MVC), 1);
+Sampling_Params.Group = 'SCI';
+[MVC_excel, ~] = Load_AbH_Excel(Sampling_Params);
+SCI_MVC = zeros(length(MVC_excel), 1);
 
-% SCI
-merged_SCI_MVC = [];
-for ii = 1:length(SCI_Names)
-    merged_SCI_MVC = cat(1, merged_SCI_MVC, SCI_MVC{ii,1});
+for ii = 1:length(SCI_MVC)
+    if strcmp(Plot_Choice, 'EMG') 
+        MVC_amp = MVC_excel{ii,1}.MVC_EMG;
+    elseif strcmp(Plot_Choice, 'Force')
+        MVC_amp = MVC_excel{ii,1}.MVC_Force;
+    end
+    SCI_MVC(ii,1) = max(MVC_amp);
 end
-merged_SCI = repmat({'SCI'}, length(merged_SCI_MVC), 1);
+merged_SCI = repmat({'SCI'}, length(SCI_MVC), 1);
 
 %% Find the y-axis limits & determine title & y-lablel
 % Y-axis
-y_max = max([merged_con_MVC; merged_SCI_MVC]);
-y_min = min([merged_con_MVC; merged_SCI_MVC]);
+y_max = max([con_MVC; SCI_MVC]);
+y_min = min([con_MVC; SCI_MVC]);
 
 % Title & y-label
 y_label = strcat('Peak', {' '}, Plot_Choice);
@@ -85,7 +84,7 @@ plot_fig.Position = [200 50 fig_size fig_size];
 hold on
 
 % Title
-title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+%title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('Group', 'FontSize', label_font_size)
@@ -93,8 +92,10 @@ ylabel(y_label, 'FontSize', label_font_size)
 
 % Plot
 if strcmp(plot_choice, 'Box')
-    boxplot([merged_con_MVC; merged_SCI_MVC], [merged_con; merged_SCI], 'GroupOrder', ...
+    boxplot([con_MVC; SCI_MVC], [merged_con; merged_SCI], 'GroupOrder', ...
             {'Control', 'SCI'});
+    %scatter(ones(length(con_MVC)), con_MVC, 75, 'k', '.')
+    %scatter(ones(length(SCI_MVC)) + 1, SCI_MVC, 75, 'k', '.')
     % Color the box plots
     plot_colors = flip(plot_colors, 1);
     box_axes = findobj(gca,'Tag','Box');
@@ -102,7 +103,7 @@ if strcmp(plot_choice, 'Box')
         patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
     end
 elseif strcmp(plot_choice, 'Violin')
-    Violin_Plot([merged_con_MVC; merged_SCI_MVC], [merged_con; merged_SCI], 'GroupOrder', ...
+    Violin_Plot([con_MVC; SCI_MVC], [merged_con; merged_SCI], 'GroupOrder', ...
             {'Control', 'SCI'}, 'ViolinColor', plot_colors);
 end
 
@@ -112,8 +113,21 @@ set(gca,'fontsize', label_font_size)
 xlim([0.5 2.5]);
 ylim([y_min - axis_expansion y_max + axis_expansion]);
 
+% Axis Editing
+figure_axes = gca;
+set(gca,'linewidth', line_width)
+% Set ticks to outside
+set(figure_axes,'TickDir','out');
+% Remove the top and right tick marks
+set(figure_axes,'box','off')
+
+% Only label every other tick
+y_labels = string(figure_axes.YAxis.TickLabels);
+y_labels(2:2:end) = NaN;
+figure_axes.YAxis.TickLabels = y_labels;
+
 % Do the statistics
-[~, peaktopeak_p_val] = ttest2(merged_con_MVC, merged_SCI_MVC);
+[~, peaktopeak_p_val] = ttest2(con_MVC, SCI_MVC);
 
 % Annotation of the p_value
 if isequal(plot_stats, 1)

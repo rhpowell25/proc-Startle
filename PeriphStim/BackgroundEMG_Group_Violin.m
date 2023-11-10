@@ -1,81 +1,56 @@
-function PeriphStim_Group_Violin(Muscle, Wave_Choice, Save_Figs)
+function BackgroundEMG_Group_Violin(Task, Muscle, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
 plot_choice = 'Violin';
 
-% Plot persistance or peak-to-peak amplitude? ('Persist', 'Peak')
-Plot_Choice = 'Peak';
-
-% Do you want to normalize the F-wave? (1 = Yes, 0 = No)
-norm_wave = 1;
-
 % Do you want to show the statistics? (1 = Yes, 0 = No)
-plot_stats = 0; 
+plot_stats = 1; 
 
 % Load all subject details from the group
 [Control_Names] = SIG_File_Details('Control');
 [SCI_Names] = SIG_File_Details('SCI');
 
 % Font specifications
-line_width = 3;
-axis_expansion = 0.1;
+axis_expansion = 0.025;
 plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
-label_font_size = 25;
-title_font_size = 25;
+label_font_size = 17;
+title_font_size = 20;
 p_value_dims = [0.51 0.45 0.44 0.44];
-legend_size = 25;
+legend_size = 15;
 font_name = 'Arial';
-fig_size = 1000;
+fig_size = 600;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_Figs, 0)
     close all
 end
 
-%% Extract the control peripheral nerve stimulations
+%% Extract the control background EMG
 con_Plot_Metric = struct([]);
 for ii = 1:length(Control_Names)
     % Load the sig file
-    [sig] = Load_SIG('Control', Control_Names{ii}, 'FWave', Muscle);
+    [sig] = Load_SIG('Control', Control_Names{ii}, Task, Muscle);
     % Process the sig file
     [sig] = Process_SIG(sig);
-    if strcmp(Plot_Choice, 'Peak')
-        % Collect the peak to peak amplitudes
-        [per_trial_Plot_Metric] = Trial_PeriphStim(sig, Muscle, Wave_Choice, 0, 0);
-        if isequal(norm_wave, 1) && strcmp(Wave_Choice, 'F')
-            [peak_M_Wave] = Trial_PeriphStim(sig, Muscle, 'M', 0, 0);
-            per_trial_Plot_Metric = per_trial_Plot_Metric / mean(peak_M_Wave) * 100;
-        end
-        con_Plot_Metric{ii,1} = mean(per_trial_Plot_Metric);
-    elseif strcmp(Plot_Choice, 'Persist')
-        % Collect the F-Wave persistance
-        [persistant_idxs, ~] = F_Wave_Persistance(sig, 'Raw');
-        con_Plot_Metric{ii,1} = (length(persistant_idxs) / length(sig.trial_result))*100;
-    end
+
+    % Collect the peak to peak background EMG
+    [per_trial_Plot_Metric, ~] = Baseline_EMG(sig, Muscle, 0, 0);
+    con_Plot_Metric{ii,1} = mean(per_trial_Plot_Metric);
 end
 
-%% Extract the SCI peripheral nerve stimulations
+%% Extract the SCI background EMG
 SCI_Plot_Metric = struct([]);
 for ii = 1:length(SCI_Names)
     % Load the sig file
-    [sig] = Load_SIG('SCI', SCI_Names{ii}, 'FWave', Muscle);
+    [sig] = Load_SIG('SCI', SCI_Names{ii}, Task, Muscle);
     % Process the sig file
     [sig] = Process_SIG(sig);
-    if strcmp(Plot_Choice, 'Peak')
-        % Collect the peak to peak amplitudes
-        [per_trial_Plot_Metric] = Trial_PeriphStim(sig, Muscle, Wave_Choice, 0, 0);
-        if isequal(norm_wave, 1) && strcmp(Wave_Choice, 'F')
-            [peak_M_Wave] = Trial_PeriphStim(sig, Muscle, 'M', 0, 0);
-            per_trial_Plot_Metric = per_trial_Plot_Metric / mean(peak_M_Wave) * 100;
-        end
-        SCI_Plot_Metric{ii,1} = mean(per_trial_Plot_Metric);
-    elseif strcmp(Plot_Choice, 'Persist')
-        % Collect the F-Wave persistance
-        [persistant_idxs, ~] = F_Wave_Persistance(sig, 'Raw');
-        SCI_Plot_Metric{ii,1} = (length(persistant_idxs) / length(sig.trial_result))*100;
-    end
+
+    % Collect the peak to peak background EMG
+    [per_trial_Plot_Metric, ~] = Baseline_EMG(sig, Muscle, 0, 0);
+    SCI_Plot_Metric{ii,1} = mean(per_trial_Plot_Metric);
 end
 
 %% Merge the amplitudes or persistance
@@ -99,27 +74,8 @@ y_max = max([merged_con_Plot_Metric; merged_SCI_Plot_Metric]);
 y_min = min([merged_con_Plot_Metric; merged_SCI_Plot_Metric]);
 
 % Title & y-label
-if strcmp(Wave_Choice, 'F')
-    title_string = 'F-Wave';
-    if isequal(norm_wave, 1)
-        title_string = strcat('Normalized', {' '}, title_string);
-    end
-elseif strcmp(Wave_Choice, 'M')
-    title_string = 'M-Max';
-end
-if strcmp(Plot_Choice, 'Peak')
-    title_string = strcat(title_string, {' '}, 'Peak-Peak Amplitude:');
-    y_label = 'Peak-Peak Amplitude';
-    if isequal(norm_wave, 1) && strcmp(Wave_Choice, 'F')
-        y_label = strcat(y_label, {' '}, '(% of M-Max)');
-    else
-        y_label = strcat(y_label, {' '}, '(mV)');
-    end
-    
-elseif strcmp(Plot_Choice, 'Persist')
-    title_string = strcat(title_string, {' '}, 'Persistance:');
-    y_label = 'Persistance (%)';
-end
+title_string = strcat(Task, {' '}, 'Background EMG:');
+y_label = 'Peak-Peak Amplitude (mV)';
 
 %% Plot the Violin Plot
 
@@ -128,7 +84,7 @@ plot_fig.Position = [200 50 fig_size fig_size];
 hold on
 
 % Title
-%title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('Group', 'FontSize', label_font_size)
@@ -155,19 +111,6 @@ set(gca,'fontsize', label_font_size)
 % Set the axis-limits
 xlim([0.5 2.5]);
 ylim([y_min - axis_expansion y_max + axis_expansion]);
-
-% Axis Editing
-figure_axes = gca;
-set(gca,'linewidth', line_width)
-% Set ticks to outside
-set(figure_axes,'TickDir','out');
-% Remove the top and right tick marks
-set(figure_axes,'box','off')
-
-% Only label every other tick
-y_labels = string(figure_axes.YAxis.TickLabels);
-y_labels(2:2:end) = NaN;
-figure_axes.YAxis.TickLabels = y_labels;
 
 % Do the statistics
 [~, peaktopeak_p_val] = ttest2(merged_con_Plot_Metric, merged_SCI_Plot_Metric);

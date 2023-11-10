@@ -1,13 +1,13 @@
-function [persistant_idxs] = F_Wave_Persistance(sig)
+function [persistant_idxs, inpersistant_idxs] = F_Wave_Persistance(sig, EMG_Choice)
 
 %% Basic Settings, some variable extractions, & definitions
+
+% Do you want to plot the rewarded or failed trials ('R' or 'F')
+trial_choice = 'R';
 
 % Muscle
 EMG_name = sig.meta.muscle;
 EMG_idx = strcmpi(sig.EMG_names, EMG_name);
-
-% Do you want to use the raw EMG or processed EMG? ('Raw', or 'Proc')
-EMG_Choice = 'Raw';
 
 % F-Wave minimum amplitude
 F_Wave_min = 0.02; % 20 µV
@@ -32,32 +32,19 @@ post_M_Max_time = 0.03; % Sec.
 post_M_Max_idx = post_M_Max_time / bin_width;
 F_Wave_idxs = F_Wave_length / bin_width;
 
+%% Indexes for rewarded trials
+
+% Convert to the trial table
+matrix_variables = sig.trial_info_table_header';
+trial_info_table = cell2table(sig.trial_info_table);
+trial_info_table.Properties.VariableNames = matrix_variables;
+
+% Indexes for rewarded trials
+rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+
 %% Extract the EMG
-if strcmp(EMG_Choice, 'Raw')
-    EMG = sig.raw_EMG;
-end
 
-if strcmp(EMG_Choice, 'Rect')
-    raw_EMG = sig.raw_EMG;
-    % DC removal of the EMG
-    Zeroed_EMG = struct([]);
-    for ii = 1:length(raw_EMG)
-        for pp = 1:width(raw_EMG{ii})
-            Zeroed_EMG{ii}(:,pp) = raw_EMG{ii}(:,pp) - mean(raw_EMG{ii}(:,pp));
-        end
-    end
-    % Rectify the EMG
-    EMG = struct([]);
-    for ii = 1:length(Zeroed_EMG)
-        for pp = 1:width(Zeroed_EMG{ii})
-            EMG{ii,1}(:,pp) = abs(Zeroed_EMG{ii}(:,pp));
-        end
-    end
-end
-
-if strcmp(EMG_Choice, 'Proc')
-    EMG = sig.EMG;
-end
+[~, EMG] = Extract_EMG(sig, EMG_Choice, sig.meta.muscle, rewarded_idxs);
 
 %% Extract the baseline EMG & find the peak to peak amplitude for each trial
 baseline_start = stim_idx - baseline_idxs;
@@ -69,7 +56,7 @@ Baseline_peaktopeak = zeros(length(EMG), 1);
 %hold on
 for ii = 1:length(Baseline_peaktopeak)
     Baseline_EMG{ii,1} = EMG{ii}(baseline_start:baseline_stop, EMG_idx);
-    %plot(Baseline_EMG{ii,1})
+    %plot(EMG{ii}(baseline_start:end, EMG_idx))
     Baseline_peaktopeak(ii,1) = peak2peak(Baseline_EMG{ii,1});
     %pause(1)
 end
@@ -91,6 +78,6 @@ end
 
 %% Find the trials with a valid F-Wave
 
-persistant_idxs = find(F_Wave_peaktopeak >= Baseline_peaktopeak + F_Wave_min);
-
+persistant_idxs = find(F_Wave_peaktopeak >= (Baseline_peaktopeak + F_Wave_min));
+inpersistant_idxs = find(F_Wave_peaktopeak < (Baseline_peaktopeak + F_Wave_min));
 

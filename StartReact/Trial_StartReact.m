@@ -79,7 +79,7 @@ end
 [EMG_Names, EMG] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
 
 % Find its onset
-[EMG_onset_idx] = EMGOnset(EMG);
+[EMG_onset_idx] = Detect_Onset(sig, State, muscle_group);
 
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(EMG{1,1}));

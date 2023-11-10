@@ -1,27 +1,27 @@
-function StartReact_Group_Violin(Muscle, State, Save_Figs)
+function StartMEP_AVG_Violin(Muscle, Group, Save_Figs)
 
 %% Basic Settings, some variable extractions, & definitions
 
 Sampling_Params = struct( ...
+    'Group', Group, ... % Group Name ('Control', 'SCI')
     'Subject', 'All', ... % Subject Name
-    'Task', 'StartReact', ... % What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
+    'Task', 'StartMEP', ... % What Task do you want to load? ('MVC', 'FWave', 'StartReact', 'StartMEP')
     'Muscle', Muscle, ... % What Muscle do you want to load? ('ABH', 'TA', 'SOL', 'QUAD')
-    'State', State, ... % Select the state to analyze 
+    'State', 'All', ... % Select the state to analyze 
     'trial_sessions', 'Ind'); % Individual Sessions or All Sessions? ('Ind' vs 'All')
 
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
-plot_choice = 'Box';
+plot_choice = 'Violin';
 
 % Do you want to show the statistics (1 = Yes, 0 = No)
-plot_stats = 0; 
+plot_stats = 1; 
 
 % Font specifications
-line_width = 3;
 axis_expansion = 0.025;
-plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
+plot_colors = [1 0 0; .7 .7 .7; 0, 0, 0];
 label_font_size = 25;
 title_font_size = 25;
-p_value_dims = [0.175 0.45 0.44 0.44];
+p_value_dims = [0.1 0.45 0.44 0.44];
 legend_size = 25;
 font_name = 'Arial';
 fig_size = 1000;
@@ -32,51 +32,21 @@ if ~isequal(Save_Figs, 0)
 end
 
 %% Extract the control StartReact metrics
-Sampling_Params.Group = 'Control';
-if strcmp(State, 'RS')
-    [~, con_StartReact] = RS_Gain_Summary(Sampling_Params);
-elseif strcmp(State, 'Delta')
-    [con_StartReact, ~] = RS_Gain_Summary(Sampling_Params);
-else
-    [rxn_time_excel, ~] = Load_AbH_Excel(Sampling_Params);
-    con_StartReact = zeros(length(rxn_time_excel), 1);
-    for ii = 1:length(con_StartReact)
-        con_StartReact(ii,1) = mean(rxn_time_excel{ii,1}.rxn_time, 'omitnan');
-    end
+[rxn_time_excel, ~] = Load_AbH_Excel(Sampling_Params);
+MEP_amps = zeros(length(rxn_time_excel), 3);
+States = strings(length(rxn_time_excel), 3);
+for ii = 1:length(rxn_time_excel)
+    Muscle_idx = contains(rxn_time_excel{ii,1}.Properties.VariableNames, Muscle);
+    MEP_idx = strcmp(rxn_time_excel{ii,1}.State, 'MEP');
+    States(ii,1) = 'MEP';
+    MEP_amps(ii,1) = table2array(mean(rxn_time_excel{ii,1}(MEP_idx,Muscle_idx)));
+    fifty_idx = strcmp(rxn_time_excel{ii,1}.State, 'MEP+50ms');
+    States(ii,2) = 'MEP+50ms';
+    MEP_amps(ii,2) = table2array(mean(rxn_time_excel{ii,1}(fifty_idx,Muscle_idx)));
+    eighty_idx = strcmp(rxn_time_excel{ii,1}.State, 'MEP+80ms');
+    States(ii,3) = 'MEP+80ms';
+    MEP_amps(ii,3) = table2array(mean(rxn_time_excel{ii,1}(eighty_idx,Muscle_idx)));
 end
-merged_con = repmat({'Control'}, length(con_StartReact), 1);
-
-%% Extract the SCI StartReact metrics
-Sampling_Params.Group = 'SCI';
-if strcmp(State, 'RS')
-    [~, SCI_StartReact] = RS_Gain_Summary(Sampling_Params);
-elseif strcmp(State, 'Delta')
-    [SCI_StartReact, ~] = RS_Gain_Summary(Sampling_Params);
-else
-    [rxn_time_excel, ~] = Load_AbH_Excel(Sampling_Params);
-    SCI_StartReact = zeros(length(rxn_time_excel), 1);
-    for ii = 1:length(SCI_StartReact)
-        SCI_StartReact(ii,1) = mean(rxn_time_excel{ii,1}.rxn_time, 'omitnan');
-    end
-end
-merged_SCI = repmat({'SCI'}, length(SCI_StartReact), 1);
-
-%% Find the y-axis limits & determine title & y-lablel
-% Y-axis
-y_max = max([con_StartReact; SCI_StartReact]);
-y_min = min([con_StartReact; SCI_StartReact]);
-
-% Title & y-label
-y_label = 'Time (sec.)';
-if strcmp(State, 'RS')
-    title_string = 'Reticulospinal Gain';
-    y_label = '';
-elseif strcmp(State, 'Delta')
-    title_string = '[F+s] - [F+S]';
-else
-    title_string = strcat('[', State, ']');
-end
-title_string = strcat('StartReact:', {' '}, title_string);
 
 %% Plot the violin plot
 
@@ -85,12 +55,17 @@ plot_fig.Position = [200 25 fig_size fig_size];
 hold on
 
 % Title
-%title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+fig_title = strcat('Reaction Times:', {' '}, Sampling_Params.Group, {' '}, Sampling_Params.Task, ...
+    {' '}, '[', Sampling_Params.Muscle, ']');
+%sgtitle(fig_title, 'FontSize', title_font_size, 'Interpreter', 'none');
+
+% Labels
+xlabel('States', 'FontSize', label_font_size)
+ylabel('Peak-To-Peak Amplitude (mv.)', 'FontSize', label_font_size);
 
 % Plot
 if strcmp(plot_choice, 'Box')
-    boxplot([con_StartReact; SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
-            {'Control', 'SCI'});
+    boxplot(MEP_amps, States, 'GroupOrder', {'F+S', 'F+s', 'F'});
     % Color the box plots
     plot_colors = flip(plot_colors, 1);
     box_axes = findobj(gca,'Tag','Box');
@@ -98,23 +73,22 @@ if strcmp(plot_choice, 'Box')
         patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
     end
 elseif strcmp(plot_choice, 'Violin')
-    Violin_Plot([con_StartReact; SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
-            {'Control', 'SCI'}, 'ViolinColor', plot_colors);
+    Violin_Plot(MEP_amps, States, ...
+        'ViolinColor', plot_colors, 'GroupOrder', {'MEP', 'MEP+50ms', 'MEP+80ms'});
 end
 
 set(gca,'fontsize', label_font_size)
 
-% Labels
-xlabel('Group', 'FontSize', label_font_size)
-ylabel(y_label, 'FontSize', label_font_size)
+% Find the y_limits
+y_min = min(MEP_amps, [], 'all');
+y_max = max(MEP_amps, [], 'all');
 
 % Set the axis-limits
-xlim([0.5 2.5]);
-ylim([y_min - axis_expansion y_max + axis_expansion]);
+xlim([0.5 3.5]);
+ylim([y_min - axis_expansion, y_max + axis_expansion])
 
 % Axis Editing
 figure_axes = gca;
-set(gca,'linewidth', line_width)
 % Set ticks to outside
 set(figure_axes,'TickDir','out');
 % Remove the top and right tick marks
@@ -125,27 +99,29 @@ y_labels = string(figure_axes.YAxis.TickLabels);
 y_labels(2:2:end) = NaN;
 figure_axes.YAxis.TickLabels = y_labels;
 
-% Do the statistics
-[~, peaktopeak_p_val] = ttest2(con_StartReact, SCI_StartReact);
-
 % Annotation of the p_value
 if isequal(plot_stats, 1)
-    if round(peaktopeak_p_val, 3) > 0
-        p_value_string = strcat('p =', {' '}, mat2str(round(peaktopeak_p_val, 3)));
+
+    % Do the statistics
+    [~, rxntime_p_val] = ttest2(MEP_amps(States == 'F+S'), ...
+        MEP_amps(States == 'F+s'));
+
+    if round(rxntime_p_val, 3) > 0
+        p_value_string = strcat('p =', {' '}, mat2str(round(rxntime_p_val, 3)));
         p_value_string = {char(p_value_string)};
         ann_p_value = annotation('textbox', p_value_dims, 'String', p_value_string, ... 
             'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
-            'EdgeColor','none', 'horizontalalignment', 'left');
+            'EdgeColor','none', 'horizontalalignment', 'center');
         ann_p_value.FontSize = legend_size;
         ann_p_value.FontName = font_name;
     end
     
-    if isequal(round(peaktopeak_p_val, 3), 0)
+    if isequal(round(rxntime_p_val, 3), 0)
         p_value_string = strcat('p <', {' '}, '0.001');
         p_value_string = {char(p_value_string)};
         ann_p_value = annotation('textbox', p_value_dims, 'String', p_value_string, ...
             'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
-            'EdgeColor','none', 'horizontalalignment', 'left');
+            'EdgeColor','none', 'horizontalalignment', 'center');
         ann_p_value.FontSize = legend_size;
         ann_p_value.FontName = font_name;
     end
@@ -155,7 +131,7 @@ end
 if ~isequal(Save_Figs, 0)
     save_dir = 'C:\Users\rpowell\Desktop\';
     for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_string, ':', '');
+        save_title = strrep(fig_title, ':', '');
         save_title = strrep(save_title, 'vs.', 'vs');
         save_title = strrep(save_title, 'mg.', 'mg');
         save_title = strrep(save_title, 'kg.', 'kg');

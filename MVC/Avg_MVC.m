@@ -6,7 +6,7 @@ disp('Average MVC Function:');
 %% Basic Settings, some variable extractions, & definitions
 
 % Extract the per trial reaction times
-[per_trial_Plot_Metric, Plot_Names] = Trial_MVC(sig, Plot_Choice, muscle_group, 0, 0);
+[per_trial_Plot_Metric, ~, Plot_Names] = Trial_MVC(sig, Plot_Choice, muscle_group, 0, 0);
 
 % Do you want to manually set the y-axis?
 man_y_axis = 'No';

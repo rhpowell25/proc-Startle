@@ -7,6 +7,14 @@ if ~isstruct(sig)
     return
 end
 
+%% F-Wave Processing
+if strcmp(sig.meta.task, 'FWave')
+
+    % Remove trials with early EMG activation
+    %[sig] = Remove_FalseStarts(sig);
+
+end
+
 %% StartReact Processing
 if strcmp(sig.meta.task, 'StartReact')
 
