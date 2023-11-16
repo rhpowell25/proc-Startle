@@ -1,4 +1,4 @@
-function Avg_MVC(sig, Plot_Choice, muscle_group, Save_Figs)
+function Avg_MVC(sig, Plot_Choice, muscle_group, Save_File)
 
 %% Display the function being used
 disp('Average MVC Function:');
@@ -29,7 +29,7 @@ figure_width = 700;
 figure_height = 350;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -72,8 +72,8 @@ Metric_figure.Position = [300 75 figure_width figure_height];
 hold on
 
 % Title
-fig_title = strcat('Average', {' '}, Plot_Choice, ':', {' '}, Subject, {' '}, Task);
-sgtitle(fig_title, 'FontSize', title_font_size)
+Fig_Title = strcat('Average', {' '}, Plot_Choice, ':', {' '}, Subject, {' '}, Task);
+sgtitle(Fig_Title, 'FontSize', title_font_size)
 
 for ii = 1:length(Plot_Names)
     subplot(length(Plot_Names),1,ii)
@@ -106,25 +106,5 @@ end
 % X Label
 xlabel('Time (sec.)', 'FontSize', label_font_size);
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        save_title = fig_title;
-        save_title = strrep(save_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)

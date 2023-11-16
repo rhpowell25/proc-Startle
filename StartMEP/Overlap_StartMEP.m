@@ -1,4 +1,4 @@
-function Overlap_StartMEP(sig, Muscle, Save_Figs)
+function Overlap_StartMEP(sig, Muscle, Save_File)
 
 %% Display the function being used
 disp('Overlap Startled MEP Function:');
@@ -53,7 +53,7 @@ font_name = 'Arial';
 figure_size = 1500;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -99,8 +99,8 @@ for ii = 1:length(EMG_Names)
     hold on
 
     % Titling the plot
-    fig_title = strcat('MEPs:', {' '}, Subject, {' '}, '[', EMG_Names{ii}, ']');
-    %title(fig_title, 'FontSize', title_font_size)
+    Fig_Title = strcat('MEPs:', {' '}, Subject, {' '}, '[', EMG_Names{ii}, ']');
+    %title(Fig_Title, 'FontSize', title_font_size)
 
     % Labels
     ylabel('EMG (mV)', 'FontSize', label_font_size);
@@ -153,29 +153,11 @@ for ii = 1:length(EMG_Names)
     figure_axes.XAxis.TickLabels = x_labels;
     figure_axes.YAxis.TickLabels = y_labels;
 
+    %% Save the file if selected
+    Save_Figs(Fig_Title, Save_File)
+
 end % End of the muscle loop
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        save_title = strrep(fig_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
 
 
 

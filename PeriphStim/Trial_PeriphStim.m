@@ -1,4 +1,4 @@
-function [peaktopeak_amp] = Trial_PeriphStim(sig, Muscle, Wave_Choice, Plot_Figs, Save_Figs)
+function [peaktopeak_amp] = Trial_PeriphStim(sig, Muscle, Wave_Choice, Plot_Figs, Save_File)
 
 %% Display the function being used
 disp('Peripheral Nerve Stimulation Function:');
@@ -61,7 +61,7 @@ legend_font_size = 30;
 font_name = 'Arial';
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -107,8 +107,8 @@ if isequal(Plot_Figs, 1)
     elseif strcmp(Wave_Choice, 'Full')
         title_string = 'E-Stim';
     end
-    fig_title = strcat(title_string, {' '}, Subject, {' '}, '[', Muscle, ']');
-    %title(fig_title, 'FontSize', title_font_size)
+    Fig_Title = strcat(title_string, {' '}, Subject, {' '}, '[', Muscle, ']');
+    %title(Fig_Title, 'FontSize', title_font_size)
 
     % Labels
     ylabel('EMG (mV)', 'FontSize', label_font_size);
@@ -172,27 +172,8 @@ if isequal(Plot_Figs, 1)
     figure_axes.XAxis.TickLabels = x_labels;
     figure_axes.YAxis.TickLabels = y_labels;
 
+    %% Save the file if selected
+    Save_Figs(Fig_Title, Save_File)
+
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        save_title = fig_title;
-        save_title = strrep(save_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end

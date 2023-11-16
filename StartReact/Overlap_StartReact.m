@@ -1,4 +1,4 @@
-function Overlap_StartReact(sig, Muscle, Save_Figs)
+function Overlap_StartReact(sig, Muscle, Save_File)
 
 %% Display the function being used
 disp('Overlap Start React Function:');
@@ -32,7 +32,7 @@ font_name = 'Arial';
 figure_size = 2000;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -53,8 +53,8 @@ EMG_figure.Position = [100 25 figure_size figure_size / 2];
 hold on
 
 % Titling the plot
-fig_title = strcat(Task, {' '}, 'Reaction Times:', {' '}, Subject);
-%title(fig_title, 'FontSize', title_font_size)
+Fig_Title = strcat(Task, {' '}, 'Reaction Times:', {' '}, Subject);
+%title(Fig_Title, 'FontSize', title_font_size)
 
 % Labels
 ylabel('Avg EMG (mV)', 'FontSize', label_font_size);
@@ -82,7 +82,7 @@ set(gca,'fontsize', label_font_size)
 set(gca,'XColor', 'none','YColor','none')
 set(gca, 'color', 'none');
     
-Axes_Legend('sec', 'mv')
+%Axes_Legend('sec', 'mv')
 
 % Axis Editing
 figure_axes = gca;
@@ -99,27 +99,7 @@ y_labels(1:2:end) = NaN;
 figure_axes.XAxis.TickLabels = x_labels;
 figure_axes.YAxis.TickLabels = y_labels;
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        save_title = strrep(fig_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
-
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 

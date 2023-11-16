@@ -3,7 +3,8 @@ function [AbH_excel, file_names] = Load_AbH_Excel(Sampling_Params)
 %% Import the excel spreadsheets of the selected drug
 
 % Define where the excel spreadsheets are saved
-Base_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Sampling_Params.Group, '\');
+Base_Path = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\', ...
+    Sampling_Params.Group, '\');
 
 % Identify all the excel files in the data path
 Excel_Path = strcat(Base_Path, '*.xlsx');

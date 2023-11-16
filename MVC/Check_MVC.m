@@ -1,4 +1,4 @@
-function Check_MVC(sig, Plot_Choice, Muscle, Save_Figs)
+function Check_MVC(sig, Plot_Choice, Muscle, Save_File)
 
 %% Display the function being used
 disp('Check MVC Function:');
@@ -26,11 +26,11 @@ line_width = 4;
 label_font_size = 30;
 title_font_size = 30;
 figure_size = 2000;
-legend_font_size = 30;
+legend_font_size = 40;
 font_name = 'Arial';
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -68,18 +68,18 @@ else
     MVC_idx = find(strcmp(Plot_Names, sig.meta.muscle));
 end
 
-%MVC_max = zeros(length(Plot_Metric), 1);
-%MVC_max_idx = struct([]);
-%for ii = 1:length(Plot_Metric)
-%    % Sliding average
-%    [sliding_avg, ~, array_idxs] = ...
-%        Sliding_Window(Plot_Metric{ii,1}(:,MVC_idx), half_window_size, step_size);
-%    % Find the max MVC
-%    temp_1 = array_idxs(sliding_avg == max(sliding_avg));
-%    MVC_max_idx{ii,1} = temp_1{1};
-%    temp_2 = sliding_avg(sliding_avg == max(sliding_avg));
-%    MVC_max(ii) = temp_2(1);
-%end
+MVC_max = zeros(length(Plot_Metric), 1);
+MVC_max_idx = struct([]);
+for ii = 1:length(Plot_Metric)
+    % Sliding average
+    [sliding_avg, ~, array_idxs] = ...
+        Sliding_Window(Plot_Metric{ii,1}(:,MVC_idx), half_window_size, step_size);
+    % Find the max MVC
+    temp_1 = array_idxs(sliding_avg == max(sliding_avg));
+    MVC_max_idx{ii,1} = temp_1{1};
+    temp_2 = sliding_avg(sliding_avg == max(sliding_avg));
+    MVC_max(ii) = temp_2(1);
+end
 
 %% Define the absolute timing
 absolute_timing = linspace(0, trial_length, length(Plot_Metric{1,1}));
@@ -102,9 +102,6 @@ end
 
 %% Plot the individual EMG traces on the top
 
-fig_titles = struct([]);
-ss = 1;
-
 for ii = 1:width(per_trial_Plot_Metric{1})
 
     EMG_figure = figure;
@@ -120,8 +117,8 @@ for ii = 1:width(per_trial_Plot_Metric{1})
         % Titling the plot
         Trial_num = trial_info_table.number(rewarded_idxs(ii));
         EMG_title = strcat(Plot_Names{pp}, {' '}, num2str(Trial_num));
-        fig_titles{ss} = strcat('MVC:', {' '}, EMG_title{1});
-        %title(fig_titles{ss}, 'FontSize', title_font_size)
+        Fig_Title = strcat('MVC:', {' '}, EMG_title{1});
+        title(Fig_Title, 'FontSize', title_font_size)
     
         % Labels
         if strcmp(Plot_Choice, 'EMG')
@@ -152,12 +149,12 @@ for ii = 1:width(per_trial_Plot_Metric{1})
         y_limits = ylim;
 
         % Horizontal line indicating max
-        %if pp == MVC_idx
-        %    line([absolute_timing(MVC_max_idx{ii,1}(1)) absolute_timing(MVC_max_idx{ii,1}(1))], ...
-        %        [y_limits(1) y_limits(end)], 'LineWidth', line_width, 'LineStyle','--', 'Color', 'r')
-        %    line([absolute_timing(MVC_max_idx{ii,1}(end)) absolute_timing(MVC_max_idx{ii,1}(end))], ...
-        %        [y_limits(1) y_limits(end)], 'LineWidth', line_width, 'LineStyle','--', 'Color', 'r')
-        %end
+        if pp == MVC_idx
+            line([absolute_timing(MVC_max_idx{ii,1}(1)) absolute_timing(MVC_max_idx{ii,1}(1))], ...
+                [y_limits(1) y_limits(end)], 'LineWidth', line_width, 'LineStyle','--', 'Color', 'r')
+            line([absolute_timing(MVC_max_idx{ii,1}(end)) absolute_timing(MVC_max_idx{ii,1}(end))], ...
+                [y_limits(1) y_limits(end)], 'LineWidth', line_width, 'LineStyle','--', 'Color', 'r')
+        end
 
         if pp >= (length(Plot_Names) - 1)
             Axes_Legend('sec', y_unit)
@@ -170,12 +167,13 @@ for ii = 1:width(per_trial_Plot_Metric{1})
         legend boxoff
 
         % Set the axis
-        ylim([0 2])
-        %ylim([y_limits(1) y_limits(end)])
+        %ylim([0 2])
+        ylim([y_limits(1) y_limits(end)])
         %xlim([0.5 4])
         ss = ss + 1;
 
         % Remove the original axes
+        title('')
         set(gca,'XColor', 'none', 'YColor','none')
         set(gca, 'color', 'none');
 
@@ -194,30 +192,9 @@ for ii = 1:width(per_trial_Plot_Metric{1})
         figure_axes.XAxis.TickLabels = x_labels;
         figure_axes.YAxis.TickLabels = y_labels;
 
+    %% Save the file if selected
+    Save_Figs(Fig_Title, Save_File)
+
     end % End of the individual trial loop
 
 end % End of the muscle loop
-
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        save_title = strrep(fig_titles{ii}, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '[', '_');
-        save_title = strrep(save_title, ']', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end

@@ -1,4 +1,4 @@
-function PeriphStim_Group_Violin(Muscle, Wave_Choice, Save_Figs)
+function PeriphStim_Group_Violin(Muscle, Wave_Choice, Save_File)
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -30,7 +30,7 @@ font_name = 'Arial';
 fig_size = 1000;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -100,15 +100,15 @@ y_min = min([merged_con_Plot_Metric; merged_SCI_Plot_Metric]);
 
 % Title & y-label
 if strcmp(Wave_Choice, 'F')
-    title_string = 'F-Wave';
+    Fig_Title = 'F-Wave';
     if isequal(norm_wave, 1)
-        title_string = strcat('Normalized', {' '}, title_string);
+        Fig_Title = strcat('Normalized', {' '}, Fig_Title);
     end
 elseif strcmp(Wave_Choice, 'M')
-    title_string = 'M-Max';
+    Fig_Title = 'M-Max';
 end
 if strcmp(Plot_Choice, 'Peak')
-    title_string = strcat(title_string, {' '}, 'Peak-Peak Amplitude:');
+    Fig_Title = strcat(Fig_Title, {' '}, 'Peak-Peak Amplitude:');
     y_label = 'Peak-Peak Amplitude';
     if isequal(norm_wave, 1) && strcmp(Wave_Choice, 'F')
         y_label = strcat(y_label, {' '}, '(% of M-Max)');
@@ -117,7 +117,7 @@ if strcmp(Plot_Choice, 'Peak')
     end
     
 elseif strcmp(Plot_Choice, 'Persist')
-    title_string = strcat(title_string, {' '}, 'Persistance:');
+    Fig_Title = strcat(Fig_Title, {' '}, 'Persistance:');
     y_label = 'Persistance (%)';
 end
 
@@ -128,7 +128,7 @@ plot_fig.Position = [200 50 fig_size fig_size];
 hold on
 
 % Title
-%title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+%title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('Group', 'FontSize', label_font_size)
@@ -200,28 +200,8 @@ end
 %[p,t,stats] = anova1(d_rxn_time, Task_Names);
 %[c,m,box_axes,gnames] = multcompare(stats);
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_string, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

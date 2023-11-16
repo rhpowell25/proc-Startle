@@ -1,4 +1,4 @@
-function Avg_StartReact(sig, State, muscle_group, Save_Figs)
+function Avg_StartReact(sig, State, muscle_group, Save_File)
 
 %% Display the function being used
 disp('Average StartReact Function:');
@@ -36,7 +36,7 @@ figure_width = 700;
 figure_height = 350;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -76,8 +76,8 @@ EMG_figure.Position = [300 75 figure_width figure_height];
 hold on
 
 % Title
-fig_title = strcat('Average EMG:', {' '}, Task, {' '}, '[', State, ']');
-sgtitle(fig_title, 'FontSize', title_font_size)
+Fig_Title = strcat('Average EMG:', {' '}, Task, {' '}, '[', State, ']');
+sgtitle(Fig_Title, 'FontSize', title_font_size)
 
 for ii = 1:length(EMG_Names)
     subplot(length(EMG_Names),1,ii)
@@ -106,24 +106,5 @@ end
 % X Label
 xlabel('Time (sec.)', 'FontSize', label_font_size);
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        fig_title = strrep(fig_title, ':', '');
-        fig_title = strrep(fig_title, 'vs.', 'vs');
-        fig_title = strrep(fig_title, 'mg.', 'mg');
-        fig_title = strrep(fig_title, 'kg.', 'kg');
-        fig_title = strrep(fig_title, '.', '_');
-        fig_title = strrep(fig_title, '/', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'fig')
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)

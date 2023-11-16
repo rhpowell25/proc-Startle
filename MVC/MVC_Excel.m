@@ -2,10 +2,7 @@ function MVC_Excel(Group, Subjects, Save_Excel)
 
 %% Some of the analysis specifications
 
-% Do you want to analyze the EMG or force? ('Force', 'EMG')
-Plot_Choice = 'EMG';
-
-Save_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
+Save_Path = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\', Group, '\');
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
 %EMG_Choice = 'Rect';
@@ -51,7 +48,8 @@ for xx = 1:length(Subjects)
 
         %% Extract the max MVC
 
-        [~, all_trials_max_MVC, ~] = Trial_MVC(sig, Plot_Choice, Muscle{jj}, 0, 0);
+        [~, all_trials_max_EMG, ~] = Trial_MVC(sig, 'EMG', Muscle{jj}, 0, 0);
+        [~, all_trials_max_Force, ~] = Trial_MVC(sig, 'Force', Muscle{jj}, 0, 0);
 
         %% Create the excel table
     
@@ -60,12 +58,15 @@ for xx = 1:length(Subjects)
         excel_number = array2table(NaN(excel_length, 1));
         excel_number.Properties.VariableNames = {'Trial'};
         excel_number.Trial = Trial_Table.number;
-        excel_MVC = array2table(NaN(excel_length, 1));
-        excel_MVC.Properties.VariableNames = {'MVC_EMG'};
-        excel_MVC.MVC_EMG = all_trials_max_MVC;
+        excel_EMG = array2table(NaN(excel_length, 1));
+        excel_EMG.Properties.VariableNames = {'MVC_EMG'};
+        excel_EMG.MVC_EMG = all_trials_max_EMG;
+        excel_Force = array2table(NaN(excel_length, 1));
+        excel_Force.Properties.VariableNames = {'MVC_Force'};
+        excel_Force.MVC_Force = all_trials_max_Force;
     
         % Join the tables
-        xds_excel = [excel_number excel_MVC];
+        xds_excel = [excel_number excel_EMG excel_Force];
     
         %% Save to Excel
     

@@ -1,4 +1,4 @@
-function StartMEP_Ind_Violin(sig, Save_Figs)
+function StartMEP_Ind_Violin(sig, Save_File)
 
 %% File Description:
 
@@ -35,7 +35,7 @@ title_font_size = 20;
 fig_size = 600;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -51,9 +51,9 @@ plot_fig.Position = [200 50 fig_size fig_size];
 hold on
 
 % Title
-EMG_title = strcat('Peak to Peak Amplitude:', {' '}, Sampling_Params.Subject, {' '}, Sampling_Params.Task, ...
+Fig_Title = strcat('Peak to Peak Amplitude:', {' '}, Sampling_Params.Subject, {' '}, Sampling_Params.Task, ...
     {' '}, '[', Sampling_Params.Muscle, ']');
-title(EMG_title, 'FontSize', title_font_size, 'Interpreter', 'none');
+title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('States', 'FontSize', label_font_size)
@@ -84,31 +84,8 @@ y_max = max(StartMEP_amp);
 xlim([0.5 4.5]);
 ylim([y_min - axis_expansion, y_max + axis_expansion])
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        fig_info = get(gca,'title');
-        save_title = get(fig_info, 'string');
-        save_title = strrep(save_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
-
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

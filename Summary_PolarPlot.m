@@ -1,4 +1,4 @@
-function [plot_metric] = Summary_PolarPlot(Group, Subject, Save_Figs)
+function [plot_metric] = Summary_PolarPlot(Group, Subject, Save_File)
 
 %% Display the function being used
 disp('Polar Plot Function:');
@@ -15,11 +15,6 @@ axes_font_size = 20;
 r_axes_angle = 135;
 axes_line_size = 2;
 font_name = 'Arial';
-
-if ~isequal(Save_Figs, 0)
-    % Do you want a save title or blank title (1 = save_title, 0 = blank)
-    Fig_Save_Title = 1;
-end
 
 %% Plotting the polar plots
 
@@ -52,8 +47,8 @@ thetaticks(degree_place)
 thetaticklabels(Task_Name)
 
 % Titling the polar plot
-fig_title = sprintf('%s: %s', plot_choice, Subject);
-title(fig_title, 'FontSize', title_font_size)
+Fig_Title = sprintf('%s: %s', plot_choice, Subject);
+title(Fig_Title, 'FontSize', title_font_size)
 
 % Only label every other tick
 figure_axes = gca;
@@ -68,29 +63,6 @@ figure_axes.RAxis.TickLabels = r_labels;
 % Set The Font
 set(figure_axes,'fontname', font_name);
 
-%% Define the save directory & save the figure
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        fig_title = strrep(fig_title, ':', '');
-        fig_title = strrep(fig_title, 'vs.', 'vs');
-        fig_title = strrep(fig_title, 'mg.', 'mg');
-        fig_title = strrep(fig_title, 'kg.', 'kg');
-        fig_title = strrep(fig_title, '.', '_');
-        fig_title = strrep(fig_title, '/', '_');
-        if isequal(Fig_Save_Title, 0)
-            title '';
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'fig')
-        else
-            saveas(gcf, fullfile(save_dir, char(fig_title)), Save_Figs)
-        end
-        close gcf
-    end
-end
-
-
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 

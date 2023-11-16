@@ -1,4 +1,4 @@
-function StartReact_Group_Violin(Muscle, State, Save_Figs)
+function StartReact_Group_Violin(Muscle, State, Save_File)
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -10,7 +10,7 @@ Sampling_Params = struct( ...
     'trial_sessions', 'Ind'); % Individual Sessions or All Sessions? ('Ind' vs 'All')
 
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
-plot_choice = 'Box';
+plot_choice = 'Violin';
 
 % Do you want to show the statistics (1 = Yes, 0 = No)
 plot_stats = 0; 
@@ -18,7 +18,7 @@ plot_stats = 0;
 % Font specifications
 line_width = 3;
 axis_expansion = 0.025;
-plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
+plot_colors = [0.85 0.325 0.098; 0 0.447 0.741; 1 0 0];
 label_font_size = 25;
 title_font_size = 25;
 p_value_dims = [0.175 0.45 0.44 0.44];
@@ -27,7 +27,7 @@ font_name = 'Arial';
 fig_size = 1000;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -61,22 +61,31 @@ else
 end
 merged_SCI = repmat({'SCI'}, length(SCI_StartReact), 1);
 
+%% Merged SCI Spasticity
+Spas_SCI_StartReact = zeros(2,1);
+Spas_SCI_StartReact(1,1) = SCI_StartReact(2);
+Spas_SCI_StartReact(2,1) = SCI_StartReact(5);
+merged_Spas_SCI = repmat({'Spastic SCI'}, length(Spas_SCI_StartReact), 1);
+
+SCI_StartReact(2) = [];
+SCI_StartReact(5) = [];
+merged_SCI = repmat({'SCI'}, length(SCI_StartReact), 1);
 %% Find the y-axis limits & determine title & y-lablel
 % Y-axis
-y_max = max([con_StartReact; SCI_StartReact]);
-y_min = min([con_StartReact; SCI_StartReact]);
+y_max = max([con_StartReact; SCI_StartReact; Spas_SCI_StartReact]);
+y_min = min([con_StartReact; SCI_StartReact; Spas_SCI_StartReact]);
 
 % Title & y-label
 y_label = 'Time (sec.)';
 if strcmp(State, 'RS')
-    title_string = 'Reticulospinal Gain';
+    Fig_Title = 'Reticulospinal Gain';
     y_label = '';
 elseif strcmp(State, 'Delta')
-    title_string = '[F+s] - [F+S]';
+    Fig_Title = '[F+s] - [F+S]';
 else
-    title_string = strcat('[', State, ']');
+    Fig_Title = strcat('[', State, ']');
 end
-title_string = strcat('StartReact:', {' '}, title_string);
+Fig_Title = strcat('StartReact:', {' '}, Fig_Title);
 
 %% Plot the violin plot
 
@@ -98,8 +107,9 @@ if strcmp(plot_choice, 'Box')
         patch(get(box_axes(pp), 'XData'), get(box_axes(pp), 'YData'), plot_colors(pp,:), 'FaceAlpha', .5);
     end
 elseif strcmp(plot_choice, 'Violin')
-    Violin_Plot([con_StartReact; SCI_StartReact], [merged_con; merged_SCI], 'GroupOrder', ...
-            {'Control', 'SCI'}, 'ViolinColor', plot_colors);
+    Violin_Plot([con_StartReact; SCI_StartReact; Spas_SCI_StartReact], ...
+        [merged_con; merged_SCI; merged_Spas_SCI], 'GroupOrder', ...
+            {'Control', 'SCI', 'Spastic SCI'}, 'ViolinColor', plot_colors);
 end
 
 set(gca,'fontsize', label_font_size)
@@ -109,7 +119,7 @@ xlabel('Group', 'FontSize', label_font_size)
 ylabel(y_label, 'FontSize', label_font_size)
 
 % Set the axis-limits
-xlim([0.5 2.5]);
+xlim([0.5 3.5]);
 ylim([y_min - axis_expansion y_max + axis_expansion]);
 
 % Axis Editing
@@ -120,10 +130,6 @@ set(figure_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(figure_axes,'box','off')
 
-% Only label every other tick
-y_labels = string(figure_axes.YAxis.TickLabels);
-y_labels(2:2:end) = NaN;
-figure_axes.YAxis.TickLabels = y_labels;
 
 % Do the statistics
 [~, peaktopeak_p_val] = ttest2(con_StartReact, SCI_StartReact);
@@ -151,30 +157,8 @@ if isequal(plot_stats, 1)
     end
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_string, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
-
-
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

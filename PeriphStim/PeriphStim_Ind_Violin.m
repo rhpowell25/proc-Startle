@@ -1,4 +1,4 @@
-function PeriphStim_Ind_Violin(sig, Wave_Choice, Save_Figs)
+function PeriphStim_Ind_Violin(sig, Wave_Choice, Save_File)
 
 %% File Description:
 
@@ -25,7 +25,7 @@ title_font_size = 20;
 fig_size = 600;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -61,10 +61,10 @@ for ii = 1:length(muscle_groups)
     y_max = max(Plot_Metric(:,ii));
     
     % Title
-    title_string = strcat('Peak', {' '}, Wave_Choice, '-Wave', {' '}, Subject, ...
+    Fig_Title = strcat('Peak', {' '}, Wave_Choice, '-Wave', {' '}, Subject, ...
         {' '}, '[', muscle_groups{ii}, ']');
-    title_strings{ii} = title_string;
-    title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+    title_strings{ii} = Fig_Title;
+    title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
     
     % Plot
     if strcmp(plot_choice, 'Box')
@@ -93,29 +93,8 @@ for ii = 1:length(muscle_groups)
 
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_strings{ii}, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
-
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

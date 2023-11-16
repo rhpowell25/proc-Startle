@@ -2,7 +2,12 @@ function [Force] = Extract_Force(sig, Zero_Force, Calib_Force, rewarded_idxs)
 
 %% Extract the Force
 
-temp_force = sig.force;
+if isfield(sig, 'force')
+    temp_force = sig.force;
+else
+    Force = NaN;
+    return
+end
 
 %% Zero the force
 if isequal(Zero_Force, 1)

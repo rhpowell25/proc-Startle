@@ -1,7 +1,7 @@
 function [sig] = Load_SIG(Group, Subject, Task, Muscle)
 
 %% Define the file location
-base_dir = 'Z:\Lab Members\Henry\AbH Startle\Data\';
+base_dir = 'C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Data\';
 folder_dir = strcat(base_dir, Group, '\', Subject, '\');
 open_file = dir(strcat(folder_dir, '*.mat'));
 

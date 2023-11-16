@@ -1,4 +1,4 @@
-function StartMEP_Group_Violin(Muscle, State, Save_Figs)
+function StartMEP_Group_Violin(Muscle, State, Save_File)
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -31,7 +31,7 @@ font_name = 'Arial';
 fig_size = 1000;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -45,7 +45,7 @@ for ii = 1:length(Control_Names)
         Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
         MEP_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
         if ~isempty(AbH_excel)
-            con_StartMEP{ii,1} = table2array(mean(AbH_excel{1,1}(MEP_idx, Muscle_idx), 'omitnan'));
+            con_StartMEP{ii,1} = mean(table2array(AbH_excel{1,1}(MEP_idx, Muscle_idx), 'omitnan'));
         end
     else
         Sampling_Params.State = 'MEP';
@@ -53,7 +53,7 @@ for ii = 1:length(Control_Names)
         Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
         if ~isempty(AbH_excel)
             test_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
-            test_peaktopeak = table2array(mean(AbH_excel{1,1}(test_idx, Muscle_idx), 'omitnan'));
+            test_peaktopeak = mean(table2array(AbH_excel{1,1}(test_idx, Muscle_idx), 'omitnan'));
             Sampling_Params.State = State;
             [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
             Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
@@ -74,7 +74,7 @@ for ii = 1:length(SCI_Names)
         Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
         MEP_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
         if ~isempty(AbH_excel)
-            SCI_StartMEP{ii,1} = table2array(mean(AbH_excel{1,1}(MEP_idx, Muscle_idx), 'omitnan'));
+            SCI_StartMEP{ii,1} = mean(table2array(AbH_excel{1,1}(MEP_idx, Muscle_idx), 'omitnan'));
         end
     else
         Sampling_Params.State = 'MEP';
@@ -82,7 +82,7 @@ for ii = 1:length(SCI_Names)
         Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
         if ~isempty(AbH_excel)
             test_idx = strcmp(AbH_excel{1,1}.State, 'MEP');
-            test_peaktopeak = table2array(mean(AbH_excel{1,1}(test_idx, Muscle_idx), 'omitnan'));
+            test_peaktopeak = mean(table2array(AbH_excel{1,1}(test_idx, Muscle_idx), 'omitnan'));
             Sampling_Params.State = State;
             [AbH_excel, ~] = Load_AbH_Excel(Sampling_Params);
             Muscle_idx = contains(AbH_excel{1,1}.Properties.VariableNames, Muscle);
@@ -120,7 +120,7 @@ else
     y_label = 'Peak-To-Peak Amplitude (%)';
     axis_expansion = axis_expansion * 100;
 end
-title_string = strcat('StartMEP:', {' '}, '[', State, ']');
+Fig_Title = strcat('StartMEP:', {' '}, '[', State, ']');
 
 %% Plot the Violin Plot
 
@@ -129,7 +129,7 @@ plot_fig.Position = [200 50 fig_size fig_size];
 hold on
 
 % Title
-title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('Group', 'FontSize', label_font_size)
@@ -201,30 +201,12 @@ if isequal(plot_stats, 1)
         ann_p_value.FontSize = legend_size;
         ann_p_value.FontName = font_name;
     end
+
+    %% Save the file if selected
+    Save_Figs(Fig_Title, Save_File)
+
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_string, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
 
 
 

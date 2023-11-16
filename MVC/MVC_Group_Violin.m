@@ -1,4 +1,4 @@
-function MVC_Group_Violin(Muscle, Plot_Choice, Save_Figs)
+function MVC_Group_Violin(Muscle, Plot_Choice, Save_File)
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -13,7 +13,7 @@ Sampling_Params = struct( ...
 plot_choice = 'Box';
 
 % Do you want to show the statistics (1 = Yes, 0 = No)
-plot_stats = 1; 
+plot_stats = 0; 
 
 % Font specifications
 line_width = 3;
@@ -27,7 +27,7 @@ font_name = 'Arial';
 fig_size = 1000;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -69,22 +69,21 @@ y_max = max([con_MVC; SCI_MVC]);
 y_min = min([con_MVC; SCI_MVC]);
 
 % Title & y-label
-y_label = strcat('Peak', {' '}, Plot_Choice);
 if strcmp(Plot_Choice, 'Force')
-    y_label = strcat(y_label, {' '}, '(N)');
+    y_label = 'Peak Force (N)';
 elseif strcmp(Plot_Choice, 'EMG')
-    y_label = strcat(y_label, {' '}, '(mV)');
+    y_label = 'Mean EMG (mV)';
 end
-title_string = strcat('Peak MVC:', {' '}, Plot_Choice);
+Fig_Title = strcat('Peak MVC:', {' '}, Plot_Choice);
 
 %% Plot the Box Plot
 
 plot_fig = figure;
-plot_fig.Position = [200 50 fig_size fig_size];
+plot_fig.Position = [200 5 fig_size fig_size*1.5];
 hold on
 
 % Title
-%title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+%title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('Group', 'FontSize', label_font_size)
@@ -128,6 +127,7 @@ figure_axes.YAxis.TickLabels = y_labels;
 
 % Do the statistics
 [~, peaktopeak_p_val] = ttest2(con_MVC, SCI_MVC);
+fprintf('p = %0.3f \n', peaktopeak_p_val)
 
 % Annotation of the p_value
 if isequal(plot_stats, 1)
@@ -152,29 +152,8 @@ if isequal(plot_stats, 1)
     end
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_string, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
-
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

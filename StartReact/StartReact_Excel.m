@@ -2,7 +2,7 @@ function StartReact_Excel(Group, Subjects, Save_Excel)
 
 %% Some of the analysis specifications
 
-Save_Path = strcat('Z:\Lab Members\Henry\AbH Startle\Excel_Data\', Group, '\');
+Save_Path = strcat('C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Excel_Data\', Group, '\');
 
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
 %EMG_Choice = 'Rect';

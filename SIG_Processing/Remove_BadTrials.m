@@ -6,6 +6,11 @@ bad_trials = [];
 
 %% MVC
 if strcmp(sig.meta.task, 'MVC')
+    if strcmp(sig.meta.subject, 'AW')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [2; 4];
+        end
+    end
     if strcmp(sig.meta.subject, 'DC')
         bad_trials = 1;
     end
@@ -35,6 +40,16 @@ end
 
 %% SCI StartReact
 if strcmp(sig.meta.task, 'StartReact')
+    if strcmp(sig.meta.subject, 'AW')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [6; 28; 36; 39; 42; 48; 52; 58; 59; 60];
+        end
+    end
+    if strcmp(sig.meta.subject, 'TP')
+        if strcmp(sig.meta.muscle, 'ABH')
+            bad_trials = [2; 44];
+        end
+    end
     if strcmp(sig.meta.subject, 'EM')
         if strcmp(sig.meta.muscle, 'ABH')
             bad_trials = [12; 29; 47; 58; 60];
@@ -167,33 +182,6 @@ end
 if strcmp(sig.meta.subject, 'HP')
     if strcmp(sig.meta.muscle, 'Plantar')
         bad_trials = [13; 14];
-    end
-end
-
-if strcmp(sig.meta.subject, 'AW')
-    if strcmp(sig.meta.muscle, 'ABH')
-        bad_trials = [1; 3; 6; 12; 13; 15; 32; 35; 36; 56; 57; 59];
-    end
-    if strcmp(sig.meta.muscle, 'AbH_Abd')
-        bad_trials = [18; 42; 45; 47; 53; 57];
-    end
-    if strcmp(sig.meta.muscle, 'TA')
-        bad_trials = 13;
-    end
-    if strcmp(sig.meta.muscle, 'SOL')
-        bad_trials = [18; 22; 24; 40; 56];
-    end
-end
-
-if strcmp(sig.meta.subject, 'TP')
-    if strcmp(sig.meta.muscle, 'ABH')
-        bad_trials = [2; 29; 30; 31; 32; 33; 36; 38; 40; 41; 46; 55; 59];
-    end
-    if strcmp(sig.meta.muscle, 'AbH_Abd')
-        bad_trials = [1; 2; 3; 4; 9; 12; 16; 21; 23; 24; 29; 32; 35; 42; 43; 50; 56; 57; 59];
-    end
-    if strcmp(sig.meta.muscle, 'SOL')
-        bad_trials = [17; 22; 27; 45; 49];
     end
 end
 

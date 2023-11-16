@@ -1,4 +1,4 @@
-function Check_StartReact(sig, State, muscle_group, Save_Figs)
+function Check_StartReact(sig, State, muscle_group, Save_File)
 
 %% Display the function being used
 disp('Check StartReact Function:');
@@ -85,9 +85,6 @@ end
 
 %% Plot the individual EMG traces on the top
 
-fig_titles = struct([]);
-ss = 1;
-
 for ii = 1:width(all_trials_EMG{ii})
 
     EMG_figure = figure;
@@ -102,8 +99,8 @@ for ii = 1:width(all_trials_EMG{ii})
         % Titling the plot
         Trial_num = trial_info_table.number(rewarded_idxs(ii));
         EMG_title = strcat(EMG_Names{pp}, {' '}, num2str(Trial_num));
-        fig_titles{ss} = strcat('Reaction Time: [', State, ']', {' '}, Subject, {' '}, EMG_title{1});
-        title(fig_titles{ss}, 'FontSize', title_font_size)
+        Fig_Title = strcat('Reaction Time: [', State, ']', {' '}, Subject, {' '}, EMG_title{1});
+        title(Fig_Title, 'FontSize', title_font_size)
     
         % Labels
         ylabel('EMG (mV)', 'FontSize', label_font_size);
@@ -143,32 +140,9 @@ for ii = 1:width(all_trials_EMG{ii})
         % Set the axis-limits
         ylim([y_limits(1) y_limits(2)]);
 
-        ss = ss + 1;
+        %% Save the file if selected
+        Save_Figs(Fig_Title, Save_File)
 
     end % End of the individual trial loop
 
 end % End of the muscle loop
-
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        save_title = strrep(fig_titles{ii}, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '[', '_');
-        save_title = strrep(save_title, ']', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end

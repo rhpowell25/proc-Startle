@@ -1,4 +1,4 @@
-function AbH_Violin_Plot(Sampling_Params, Save_Figs)
+function AbH_Violin_Plot(Sampling_Params, Save_File)
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -20,7 +20,7 @@ font_name = 'Arial';
 fig_size = 1000;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -102,14 +102,14 @@ y_min = min([con_plot; SCI_StartReact]);
 % Title & y-label
 y_label = 'Time (sec.)';
 if strcmp(State, 'RS')
-    title_string = 'Reticulospinal Gain';
+    Fig_Title = 'Reticulospinal Gain';
     y_label = '';
 elseif strcmp(State, 'Delta')
-    title_string = '[F+s] - [F+S]';
+    Fig_Title = '[F+s] - [F+S]';
 else
-    title_string = strcat('[', State, ']');
+    Fig_Title = strcat('[', State, ']');
 end
-title_string = strcat('StartReact:', {' '}, title_string);
+Fig_Title = strcat('StartReact:', {' '}, Fig_Title);
 
 %% Plot the violin plot
 
@@ -118,7 +118,7 @@ plot_fig.Position = [200 25 fig_size fig_size];
 hold on
 
 % Title
-%title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+%title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Plot
 if strcmp(plot_choice, 'Box')
@@ -184,28 +184,8 @@ if isequal(plot_stats, 1)
     end
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_string, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

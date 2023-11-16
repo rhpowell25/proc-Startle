@@ -1,4 +1,4 @@
-function StartReact_AVG_Violin(Muscle, Group, Save_Figs)
+function StartReact_AVG_Violin(Muscle, Group, Save_File)
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -28,7 +28,7 @@ font_name = 'Arial';
 fig_size = 1000;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -40,13 +40,13 @@ for ii = 1:length(rxn_time_excel)
     rxn_idx = contains(rxn_time_excel{ii,1}.Properties.VariableNames, 'rxn_time');
     F_idx = strcmp(rxn_time_excel{ii,1}.State, 'F');
     States(ii,1) = 'F';
-    rxn_times(ii,1) = table2array(mean(rxn_time_excel{ii,1}(F_idx,rxn_idx)));
+    rxn_times(ii,1) = mean(table2array(rxn_time_excel{ii,1}(F_idx,rxn_idx)));
     Fs_idx = strcmp(rxn_time_excel{ii,1}.State, 'F+s');
     States(ii,2) = 'F+s';
-    rxn_times(ii,2) = table2array(mean(rxn_time_excel{ii,1}(Fs_idx,rxn_idx)));
+    rxn_times(ii,2) = mean(table2array(rxn_time_excel{ii,1}(Fs_idx,rxn_idx)));
     FS_idx = strcmp(rxn_time_excel{ii,1}.State, 'F+S');
     States(ii,3) = 'F+S';
-    rxn_times(ii,3) = table2array(mean(rxn_time_excel{ii,1}(FS_idx,rxn_idx)));
+    rxn_times(ii,3) = mean(table2array(rxn_time_excel{ii,1}(FS_idx,rxn_idx)));
 end
 
 %% Plot the violin plot
@@ -56,9 +56,9 @@ plot_fig.Position = [200 25 fig_size fig_size];
 hold on
 
 % Title
-fig_title = strcat('Reaction Times:', {' '}, Sampling_Params.Group, {' '}, Sampling_Params.Task, ...
+Fig_Title = strcat('Reaction Times:', {' '}, Sampling_Params.Group, {' '}, Sampling_Params.Task, ...
     {' '}, '[', Sampling_Params.Muscle, ']');
-%sgtitle(fig_title, 'FontSize', title_font_size, 'Interpreter', 'none');
+%sgtitle(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('States', 'FontSize', label_font_size)
@@ -96,15 +96,14 @@ set(figure_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(figure_axes,'box','off')
 
-% Only label every other tick
-y_labels = string(figure_axes.YAxis.TickLabels);
-y_labels(2:2:end) = NaN;
-figure_axes.YAxis.TickLabels = y_labels;
-
 % Annotation of the p_value
 if isequal(plot_stats, 1)
 
     % Do the statistics
+    [~, rxntime_p_val] = ttest2(rxn_times(States == 'F'), ...
+        rxn_times(States == 'F+s'));
+    [~, rxntime_p_val] = ttest2(rxn_times(States == 'F+S'), ...
+        rxn_times(States == 'F'));
     [~, rxntime_p_val] = ttest2(rxn_times(States == 'F+S'), ...
         rxn_times(States == 'F+s'));
 
@@ -129,28 +128,8 @@ if isequal(plot_stats, 1)
     end
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(fig_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

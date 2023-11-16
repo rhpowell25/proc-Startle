@@ -3,12 +3,12 @@ clear
 
 params = struct( ...
     'Group', 'Control', ... & 'Control', 'SCI'
-    'Subject', 'HP', ... % Subject Name
-    'Date', '20231107', ... % Select the date to convert (YYYYMMDD)
+    'Subject', 'AW', ... % Subject Name
+    'Date', '20230623', ... % Select the date to convert (YYYYMMDD)
     'Subject_Side', 'Right'); % What side of the body ('Left' or 'Right')
 
 % Find the file location
-base_dir = 'Z:\Lab Members\Henry\AbH Startle\Data\';
+base_dir = 'C:\Users\rhpow\Documents\Work\AbilityLab\Perez Lab\Data\';
 save_dir = strcat(base_dir, params.Group, '\', params.Subject, '\');
 file_dir = strcat(save_dir, 'RawFiles\', params.Date, '\');
 file_type = strcat(file_dir, '*.mat');

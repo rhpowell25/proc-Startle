@@ -11,6 +11,8 @@ if strcmp(Group, 'Control')
     Names{5,1} = 'FR';
     Names{6,1} = 'MKL';
     Names{7,1} = 'MF';
+    Names{8,1} = 'TP';
+    Names{9,1} = 'RM';
 end
 if strcmp(Group, 'SCI')
     Names{1,1} = 'PM';

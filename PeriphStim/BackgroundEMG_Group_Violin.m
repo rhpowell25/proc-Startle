@@ -1,4 +1,4 @@
-function BackgroundEMG_Group_Violin(Task, Muscle, Save_Figs)
+function BackgroundEMG_Group_Violin(Task, Muscle, Save_File)
 
 %% Basic Settings, some variable extractions, & definitions
 
@@ -23,7 +23,7 @@ font_name = 'Arial';
 fig_size = 600;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -74,7 +74,7 @@ y_max = max([merged_con_Plot_Metric; merged_SCI_Plot_Metric]);
 y_min = min([merged_con_Plot_Metric; merged_SCI_Plot_Metric]);
 
 % Title & y-label
-title_string = strcat(Task, {' '}, 'Background EMG:');
+Fig_Title = strcat(Task, {' '}, 'Background EMG:');
 y_label = 'Peak-Peak Amplitude (mV)';
 
 %% Plot the Violin Plot
@@ -84,7 +84,7 @@ plot_fig.Position = [200 50 fig_size fig_size];
 hold on
 
 % Title
-title(title_string, 'FontSize', title_font_size, 'Interpreter', 'none');
+title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
 
 % Labels
 xlabel('Group', 'FontSize', label_font_size)
@@ -143,28 +143,8 @@ end
 %[p,t,stats] = anova1(d_rxn_time, Task_Names);
 %[c,m,box_axes,gnames] = multcompare(stats);
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        save_title = strrep(title_string, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        save_title = strrep(save_title, '{ }', ' ');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 
 

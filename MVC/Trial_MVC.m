@@ -1,12 +1,14 @@
-function [per_trial_Plot_Metric, MVC_max, Plot_Names] = Trial_MVC(sig, Plot_Choice, muscle_group, Plot_Figs, Save_Figs)
+function [per_trial_Plot_Metric, MVC_max, Plot_Names] = ...
+    Trial_MVC(sig, Plot_Choice, muscle_group, Plot_Figs, Save_File)
 
 %% Display the function being used
 disp('Per Trial MVC Function:');
 
 %% Check for common sources of errors
-if ~isstruct(sig)
+if ~isstruct(sig) 
     disp('NaN Sig File!')
     per_trial_Plot_Metric = {NaN};
+    MVC_max = {NaN};
     Plot_Names = {NaN};
     return
 end
@@ -44,7 +46,7 @@ figure_width = 700;
 figure_height = 350;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -58,6 +60,14 @@ trial_info_table.Properties.VariableNames = matrix_variables;
 % Indexes for rewarded trials
 rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
 
+if isequal(Plot_Choice, 'Force') && ~isfield(sig, 'force')
+    disp('No force!')
+    per_trial_Plot_Metric = NaN(length(rewarded_idxs), 1);
+    MVC_max = NaN(length(rewarded_idxs), 1);
+    Plot_Names = NaN(length(rewarded_idxs), 1);
+    return
+end
+
 %% Extract the EMG or force
 if isequal(Plot_Choice, 'EMG')
     [Plot_Names, Plot_Metric] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
@@ -69,12 +79,16 @@ end
 %% Find the average peak of each MVC
 MVC_max = zeros(length(Plot_Metric), 1);
 for ii = 1:length(Plot_Metric)
-    % Sliding average
-    [sliding_avg, ~, ~] = ...
-        Sliding_Window(Plot_Metric{ii,1}, half_window_size, step_size);
-    % Find the max MVC
-    temp_2 = sliding_avg(sliding_avg == max(sliding_avg));
-    MVC_max(ii) = temp_2(1);
+    if isequal(Plot_Choice, 'EMG')
+        % Sliding average
+        [sliding_avg, ~, ~] = ...
+            Sliding_Window(Plot_Metric{ii,1}, half_window_size, step_size);
+        % Find the max MVC
+        temp_2 = sliding_avg(sliding_avg == max(sliding_avg));
+        MVC_max(ii) = temp_2(1);
+    elseif isequal(Plot_Choice, 'Force')
+        MVC_max(ii) = max(Plot_Metric{ii,1});
+    end
 end
 
 %% Define the absolute timing
@@ -106,8 +120,8 @@ if isequal(Plot_Figs, 1)
         hold on
     
         % Titling the plot
-        EMG_title = strcat('MVC:', {' '}, Subject, {' '}, Plot_Names{ii});
-        title(EMG_title, 'FontSize', title_font_size)
+        Fig_Title = strcat('MVC:', {' '}, Subject, {' '}, Plot_Names{ii});
+        title(Fig_Title, 'FontSize', title_font_size)
     
         % Labels
         if isequal(Plot_Choice, 'EMG')
@@ -131,26 +145,6 @@ if isequal(Plot_Figs, 1)
     end % End of the muscle loop
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        fig_info = get(gca,'title');
-        save_title = get(fig_info, 'string');
-        save_title = strrep(save_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
+
