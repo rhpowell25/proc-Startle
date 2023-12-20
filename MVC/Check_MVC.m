@@ -5,9 +5,6 @@ disp('Check MVC Function:');
 
 %% Basic Settings, some variable extractions, & definitions
 
-% Do you want to plot the rewarded or failed trials ('R' or 'F')
-trial_choice = 'R';
-
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
 EMG_Choice = 'Rect';
 
@@ -21,13 +18,8 @@ step_size = 1; % Bins
 
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
-% Font specifications
-line_width = 4;
-label_font_size = 30;
-title_font_size = 30;
-figure_size = 2000;
-legend_font_size = 40;
-font_name = 'Arial';
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -36,13 +28,8 @@ end
 
 %% Indexes for rewarded trials
 
-% Convert to the trial table
-matrix_variables = sig.trial_info_table_header';
-trial_info_table = cell2table(sig.trial_info_table);
-trial_info_table.Properties.VariableNames = matrix_variables;
-
 % Indexes for rewarded trials
-rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+[rewarded_idxs] = Rewarded_Indexes(sig, NaN, NaN);
 
 %% Extract the EMG / Force
 
@@ -105,7 +92,7 @@ end
 for ii = 1:width(per_trial_Plot_Metric{1})
 
     EMG_figure = figure;
-    EMG_figure.Position = [300 5 figure_size figure_size];
+    EMG_figure.Position = [300 5 Plot_Params.fig_size Plot_Params.fig_size];
     
     hold on
 
@@ -118,7 +105,7 @@ for ii = 1:width(per_trial_Plot_Metric{1})
         Trial_num = trial_info_table.number(rewarded_idxs(ii));
         EMG_title = strcat(Plot_Names{pp}, {' '}, num2str(Trial_num));
         Fig_Title = strcat('MVC:', {' '}, EMG_title{1});
-        title(Fig_Title, 'FontSize', title_font_size)
+        title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
     
         % Labels
         if strcmp(Plot_Choice, 'EMG')
@@ -139,11 +126,12 @@ for ii = 1:width(per_trial_Plot_Metric{1})
                 line_color = 'k';
             end
         end
-        ylabel(strcat(y_label, {' '}, '(', y_unit, ')'), 'FontSize', label_font_size);
-        xlabel('Time (sec.)', 'FontSize', label_font_size);
+        ylabel(strcat(y_label, {' '}, '(', y_unit, ')'), 'FontSize', Plot_Params.label_font_size);
+        xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
 
         % Plot the EMG
-        Metric_Line = plot(absolute_timing, per_trial_Plot_Metric{pp}(:,ii), line_color, 'LineWidth', line_width);
+        Metric_Line = plot(absolute_timing, per_trial_Plot_Metric{pp}(:,ii), line_color, ...
+            'LineWidth', Plot_Params.mean_line_width);
 
         % Find the y_limits
         y_limits = ylim;
@@ -151,9 +139,11 @@ for ii = 1:width(per_trial_Plot_Metric{1})
         % Horizontal line indicating max
         if pp == MVC_idx
             line([absolute_timing(MVC_max_idx{ii,1}(1)) absolute_timing(MVC_max_idx{ii,1}(1))], ...
-                [y_limits(1) y_limits(end)], 'LineWidth', line_width, 'LineStyle','--', 'Color', 'r')
+                [y_limits(1) y_limits(end)], 'LineWidth', Plot_Params.mean_line_width, ...
+                'LineStyle','--', 'Color', 'r')
             line([absolute_timing(MVC_max_idx{ii,1}(end)) absolute_timing(MVC_max_idx{ii,1}(end))], ...
-                [y_limits(1) y_limits(end)], 'LineWidth', line_width, 'LineStyle','--', 'Color', 'r')
+                [y_limits(1) y_limits(end)], 'LineWidth', Plot_Params.mean_line_width, ...
+                'LineStyle','--', 'Color', 'r')
         end
 
         if pp >= (length(Plot_Names) - 1)
@@ -161,8 +151,8 @@ for ii = 1:width(per_trial_Plot_Metric{1})
         end
 
         % Legend
-        legend(Metric_Line, Plot_Names{pp}, 'NumColumns', 1, 'FontName', font_name, ...
-            'Location', 'NorthWest', 'FontSize', legend_font_size)
+        legend(Metric_Line, Plot_Names{pp}, 'NumColumns', 1, 'FontName', Plot_Params.font_name, ...
+            'Location', 'NorthWest', 'FontSize', Plot_Params.legend_size)
         % Remove the legend's outline
         legend boxoff
 

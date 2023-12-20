@@ -1,5 +1,5 @@
 
-function [peak2peak_EMG, rewarded_idxs] = Baseline_EMG(sig, muscle_group, Plot_Figs, Save_Figs)
+function [peak2peak_EMG, rewarded_idxs] = Baseline_EMG(sig, muscle_group, Plot_Figs, Save_File)
 
 %% Display the function being used
 disp('Baseline EMG Histogram:');
@@ -45,16 +45,12 @@ end
 stop_time = gocue_time + after_gocue; % Sec.; % Sec.
 stop_idx = round(stop_time/bin_width);
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0;
-label_font_size = 15;
-title_font_size = 15;
-mean_line_width = 3;
-figure_width = 700;
-figure_height = 700;
 
 % Close all previously open figures if you're saving 
-if ~isequal(Save_Figs, 0)
+if ~isequal(Save_File, 0)
     close all
 end
 
@@ -110,17 +106,17 @@ if isequal(Plot_Figs, 1)
     for ii = 1:length(EMG_Names)
     
         EMG_figure = figure;
-        EMG_figure.Position = [300 100 figure_width figure_height];
+        EMG_figure.Position = [300 100 Plot_Params.fig_size Plot_Params.fig_size];
         hold on
     
         % Titling the plot
-        EMG_title = strcat('Baseline EMG Histogram:', {' '}, Subject, {' '}, Task, ...
+        Fig_Title = strcat('Baseline EMG Histogram:', {' '}, Subject, {' '}, Task, ...
             {' '}, '[', EMG_Names{ii}, ']');
-        title(EMG_title, 'FontSize', title_font_size)
+        title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
     
         % Labels
-        xlabel('Peak-to-peak amplitude (mV)', 'FontSize', label_font_size);
-        ylabel('Trials', 'FontSize', label_font_size);
+        xlabel('Peak-to-peak amplitude (mV)', 'FontSize', Plot_Params.label_font_size);
+        ylabel('Trials', 'FontSize', Plot_Params.label_font_size);
     
         % Plot the histogram
         histogram(peak2peak_EMG(:,ii), 25, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
@@ -135,6 +131,9 @@ if isequal(Plot_Figs, 1)
             % Set the axis
             ylim([man_y_axis(1),  man_y_axis(2) + axis_expansion])
         end
+
+        %% Save the file if selected
+        Save_Figs(Fig_Title, Save_File)
     
     end % End of the muscle loop
 
@@ -142,19 +141,19 @@ if isequal(Plot_Figs, 1)
     for ii = 1:length(EMG_Names)
     
         EMG_figure = figure;
-        EMG_figure.Position = [300 100 figure_width figure_height / 2];
+        EMG_figure.Position = [300 100 Plot_Params.fig_size Plot_Params.fig_size / 2];
         hold on
 
         post_gocue_idx = 5;
     
         % Titling the plot
-        EMG_title = strcat('Baseline EMG:', {' '}, Subject, {' '}, Task, ...
+        Fig_Title = strcat('Baseline EMG:', {' '}, Subject, {' '}, Task, ...
             {' '}, '[', EMG_Names{ii}, ']');
-        title(EMG_title, 'FontSize', title_font_size)
+        title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
     
         % Labels
-        ylabel('Peak-to-peak amplitude (mV)', 'FontSize', label_font_size);
-        xlabel('Time (sec.)', 'FontSize', label_font_size);
+        ylabel('Peak-to-peak amplitude (mV)', 'FontSize', Plot_Params.label_font_size);
+        xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
     
         % Adjust for StartMEP intervals
         if strcmp(Task, 'StartMEP')
@@ -177,31 +176,11 @@ if isequal(Plot_Figs, 1)
             % Set the axis
             ylim([man_y_axis(1),  man_y_axis(2) + axis_expansion])
         end
+
+        %% Save the file if selected
+        Save_Figs(Fig_Title, Save_File)
     
     end % End of the muscle loop
-end
-
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rpowell\Desktop\';
-    for ii = 1:numel(findobj('type','figure'))
-        fig_info = get(gca,'title');
-        save_title = get(fig_info, 'string');
-        save_title = strrep(save_title, ':', '');
-        save_title = strrep(save_title, 'vs.', 'vs');
-        save_title = strrep(save_title, 'mg.', 'mg');
-        save_title = strrep(save_title, 'kg.', 'kg');
-        save_title = strrep(save_title, '.', '_');
-        save_title = strrep(save_title, '/', '_');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+    
+end % End of the Plot_Fig statement
 

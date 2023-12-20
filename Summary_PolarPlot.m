@@ -8,13 +8,9 @@ disp('Polar Plot Function:');
 % Plot the Δ reaction time or RS Gain? ('Reaction Time' or 'RS Gain')
 plot_choice = 'RS Gain';
 
-% Font & axis specifications
-title_font_size = 15;
-plot_line_size = 3;
-axes_font_size = 20;
-r_axes_angle = 135;
-axes_line_size = 2;
-font_name = 'Arial';
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
+r_axis_angle = 135;
 
 %% Plotting the polar plots
 
@@ -38,7 +34,7 @@ Polar_plot_metric = [plot_metric; plot_metric(1)];
 degree_place = linspace(0, 360, length(Polar_plot_metric));
 
 figure
-polarplot(deg2rad(degree_place), Polar_plot_metric, 'LineWidth', plot_line_size, 'Color', 'k')
+polarplot(deg2rad(degree_place), Polar_plot_metric, 'LineWidth', Plot_Params.mean_line_width, 'Color', 'k')
 hold on
 
 % Label the theta axis
@@ -48,20 +44,20 @@ thetaticklabels(Task_Name)
 
 % Titling the polar plot
 Fig_Title = sprintf('%s: %s', plot_choice, Subject);
-title(Fig_Title, 'FontSize', title_font_size)
+title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
 % Only label every other tick
 figure_axes = gca;
-figure_axes.RAxisLocation = r_axes_angle;
+figure_axes.RAxisLocation = r_axis_angle;
 figure_axes.RColor = 'k';
 figure_axes.ThetaColor = 'k';
-figure_axes.LineWidth = axes_line_size;
-figure_axes.FontSize = axes_font_size;
+figure_axes.LineWidth = Plot_Params.axes_line_width;
+figure_axes.FontSize = Plot_Params.axis_font_size;
 r_labels = string(figure_axes.RAxis.TickLabels);
 r_labels(1:2:end) = NaN;
 figure_axes.RAxis.TickLabels = r_labels;
 % Set The Font
-set(figure_axes,'fontname', font_name);
+set(figure_axes,'fontname', Plot_Params.font_name);
 
 %% Save the file if selected
 Save_Figs(Fig_Title, Save_File)

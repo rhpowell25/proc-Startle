@@ -48,12 +48,9 @@ end
 stop_time = 5; % Sec.
 stop_idx = stop_time/bin_width;
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0.1;
-label_font_size = 15;
-title_font_size = 15;
-figure_width = 700;
-figure_height = 350;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -99,16 +96,16 @@ if isequal(Plot_Figs, 1)
     for ii = 1:length(EMG_Names)
     
         EMG_figure = figure;
-        EMG_figure.Position = [300 100 figure_width figure_height];
+        EMG_figure.Position = [300 100 Plot_Params.fig_size Plot_Params.fig_size];
         hold on
     
         % Titling the plot
         Fig_Title = strcat('Reaction Time:', {' '}, Subject, {' '}, '[', State, ']', {' '}, EMG_Names{ii});
-        title(Fig_Title, 'FontSize', title_font_size)
+        title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
     
         % Labels
-        ylabel('EMG (mV)', 'FontSize', label_font_size);
-        xlabel('Time (sec.)', 'FontSize', label_font_size);
+        ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
+        xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
     
         for pp = 1:width(per_trial_EMG{ii})
     

@@ -26,14 +26,9 @@ trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 stop_length = 2; % Sec.
 stop_idx = stop_length/bin_width;
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0.025;
-label_font_size = 15;
-legend_font_size = 12;
-title_font_size = 15;
-font_name = 'Arial';
-figure_width = 700;
-figure_height = 350;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -72,19 +67,19 @@ end
 %% Plot the mean EMG traces
 
 EMG_figure = figure;
-EMG_figure.Position = [300 75 figure_width figure_height];
+EMG_figure.Position = [300 75 Plot_Params.fig_size Plot_Params.fig_size / 2];
 hold on
 
 % Title
 Fig_Title = strcat('Average EMG:', {' '}, Task, {' '}, '[', State, ']');
-sgtitle(Fig_Title, 'FontSize', title_font_size)
+sgtitle(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
 for ii = 1:length(EMG_Names)
     subplot(length(EMG_Names),1,ii)
     hold on
     
     % Y Labels
-    ylabel('EMG (mV)', 'FontSize', label_font_size);
+    ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
     
     % Mean EMG
     plot(absolute_timing(1:stop_idx), cross_trial_avg_EMG{ii,1}(1:stop_idx), ...
@@ -95,7 +90,7 @@ for ii = 1:length(EMG_Names)
         'LineWidth', 1, 'LineStyle','--', 'Color', 'r');
     
     legend(sprintf('%s', EMG_Names{ii}), ... 
-            'NumColumns', 1, 'FontSize', legend_font_size, 'FontName', font_name, ...
+            'NumColumns', 1, 'FontSize', Plot_Params.legend_size, 'FontName', Plot_Params.font_name, ...
             'Location', 'NorthEast');
     legend boxoff
 
@@ -104,7 +99,7 @@ for ii = 1:length(EMG_Names)
 end
 
 % X Label
-xlabel('Time (sec.)', 'FontSize', label_font_size);
+xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
 
 %% Save the file if selected
 Save_Figs(Fig_Title, Save_File)

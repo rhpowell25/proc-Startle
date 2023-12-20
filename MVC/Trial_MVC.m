@@ -19,9 +19,6 @@ end
 man_y_axis = 'No';
 %man_y_axis = [0, 0.2];
 
-% Do you want to plot the rewarded or failed trials ('R' or 'F')
-trial_choice = 'R';
-
 % Do you want to use the raw EMG or processed EMG? ('Raw', 'Rect', 'Proc')
 EMG_Choice = 'Rect';
 
@@ -38,12 +35,9 @@ step_size = 1; % Bins
 
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0.1;
-label_font_size = 15;
-title_font_size = 15;
-figure_width = 700;
-figure_height = 350;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -52,13 +46,8 @@ end
 
 %% Indexes for rewarded trials
 
-% Convert to the trial table
-matrix_variables = sig.trial_info_table_header';
-trial_info_table = cell2table(sig.trial_info_table);
-trial_info_table.Properties.VariableNames = matrix_variables;
-
 % Indexes for rewarded trials
-rewarded_idxs = find(strcmp(trial_info_table.result, trial_choice));
+[rewarded_idxs] = Rewarded_Indexes(sig, NaN, NaN);
 
 if isequal(Plot_Choice, 'Force') && ~isfield(sig, 'force')
     disp('No force!')
@@ -69,6 +58,7 @@ if isequal(Plot_Choice, 'Force') && ~isfield(sig, 'force')
 end
 
 %% Extract the EMG or force
+
 if isequal(Plot_Choice, 'EMG')
     [Plot_Names, Plot_Metric] = Extract_EMG(sig, EMG_Choice, muscle_group, rewarded_idxs);
 elseif isequal(Plot_Choice, 'Force')
@@ -116,20 +106,20 @@ if isequal(Plot_Figs, 1)
     for ii = 1:length(Plot_Names)
     
         EMG_figure = figure;
-        EMG_figure.Position = [300 100 figure_width figure_height];
+        EMG_figure.Position = [300 100 Plot_Params.fig_size Plot_Params.fig_size / 2];
         hold on
     
         % Titling the plot
         Fig_Title = strcat('MVC:', {' '}, Subject, {' '}, Plot_Names{ii});
-        title(Fig_Title, 'FontSize', title_font_size)
+        title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
     
         % Labels
         if isequal(Plot_Choice, 'EMG')
-            ylabel('EMG (mV)', 'FontSize', label_font_size);
+            ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
         elseif isequal(Plot_Choice, 'Force')
-            ylabel('Force (N)', 'FontSize', label_font_size);
+            ylabel('Force (N)', 'FontSize', Plot_Params.label_font_size);
         end
-        xlabel('Time (sec.)', 'FontSize', label_font_size);
+        xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
     
         for pp = 1:width(per_trial_Plot_Metric{ii})
     

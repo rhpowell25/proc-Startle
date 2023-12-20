@@ -26,13 +26,11 @@ plot_choice = 'Box';
 % Do you want to show the statistics (1 = Yes, 0 = No)
 %plot_stats = 1;
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 %plot_colors = [0 0 0; 1 0 0; 0 0.5 0];
 plot_colors = [0 0 0; 1 0 0; 0 0.5 0; .7 .7 .7];
 axis_expansion = 0.02;
-label_font_size = 17;
-title_font_size = 20;
-fig_size = 600;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -47,17 +45,17 @@ States = string(StartMEP_excel{1,1}.State);
 %% Plot the violin plot
 
 plot_fig = figure;
-plot_fig.Position = [200 50 fig_size fig_size];
+plot_fig.Position = [200 50 Plot_Params.fig_size Plot_Params.fig_size];
 hold on
 
 % Title
 Fig_Title = strcat('Peak to Peak Amplitude:', {' '}, Sampling_Params.Subject, {' '}, Sampling_Params.Task, ...
     {' '}, '[', Sampling_Params.Muscle, ']');
-title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
+title(Fig_Title, 'FontSize', Plot_Params.title_font_size, 'Interpreter', 'none');
 
 % Labels
-xlabel('States', 'FontSize', label_font_size)
-ylabel('Peak to Peak Amplitude (mV)', 'FontSize', label_font_size);
+xlabel('States', 'FontSize', Plot_Params.label_font_size)
+ylabel('Peak to Peak Amplitude (mV)', 'FontSize', Plot_Params.label_font_size);
 
 % Plot
 if strcmp(plot_choice, 'Box')
@@ -74,7 +72,7 @@ elseif strcmp(plot_choice, 'Violin')
         {'MEP', 'MEP+50ms', 'MEP+80ms', 'MEP+100ms'}, 'ViolinColor', plot_colors);
 end
 
-set(gca,'fontsize', label_font_size)
+set(gca,'fontsize', Plot_Params.label_font_size)
 
 % Find the y_limits
 y_min = min(StartMEP_amp);
