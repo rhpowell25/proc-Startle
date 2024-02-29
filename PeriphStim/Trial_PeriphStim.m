@@ -51,14 +51,9 @@ if strcmp(Wave_Choice, 'Full')
     stop_idx = round(stop_time/bin_width);
 end
 
-% Font specifications
-line_width = 4;
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0.1;
-label_font_size = 30;
-title_font_size = 30;
-figure_size = 2000;
-legend_font_size = 30;
-font_name = 'Arial';
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -96,7 +91,7 @@ end
 if isequal(Plot_Figs, 1)
     
     EMG_figure = figure;
-    EMG_figure.Position = [300 25 figure_size figure_size / 2];
+    EMG_figure.Position = [300 25 Plot_Params.fig_size Plot_Params.fig_size / 2];
     hold on
 
     % Titling the plot
@@ -108,16 +103,16 @@ if isequal(Plot_Figs, 1)
         title_string = 'E-Stim';
     end
     Fig_Title = strcat(title_string, {' '}, Subject, {' '}, '[', Muscle, ']');
-    %title(Fig_Title, 'FontSize', title_font_size)
+    %title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
     % Labels
-    ylabel('EMG (mV)', 'FontSize', label_font_size);
-    xlabel('Time (sec.)', 'FontSize', label_font_size);
+    ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
+    xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
 
     for pp = 1:width(all_trials_EMG)
         plot(absolute_timing(start_idx:stop_idx), all_trials_EMG(:,pp), 'k', 'LineWidth', 1)
     end % End of the individual trial loop
-    plot(absolute_timing(start_idx:stop_idx), avg_EMG, 'r', 'LineWidth', line_width)
+    plot(absolute_timing(start_idx:stop_idx), avg_EMG, 'r', 'LineWidth', Plot_Params.mean_line_width)
 
     % Set the axis
     xlim([start_time, stop_time])
@@ -135,8 +130,8 @@ if isequal(Plot_Figs, 1)
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
             'FitBoxToText', 'on', 'verticalalignment', 'top', ...
             'EdgeColor','none', 'horizontalalignment', 'center');
-        ann_legend.FontSize = legend_font_size;
-        ann_legend.FontName = font_name;
+        ann_legend.FontSize = Plot_Params.legend_size;
+        ann_legend.FontName = Plot_Params.font_name;
     end
     
     % Annotation of the mean peak to peak amplitude
@@ -148,8 +143,8 @@ if isequal(Plot_Figs, 1)
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
             'FitBoxToText', 'on', 'verticalalignment', 'top', ...
             'EdgeColor','none', 'horizontalalignment', 'center');
-        ann_legend.FontSize = legend_font_size;
-        ann_legend.FontName = font_name;
+        ann_legend.FontSize = Plot_Params.legend_size;
+        ann_legend.FontName = Plot_Params.font_name;
     end
 
     % Remove the original axes

@@ -18,12 +18,10 @@ Sampling_Params = struct( ...
 % Do you want to use a boxplot or violinplot? ('Box', 'Violin')
 plot_choice = 'Box';
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 plot_colors = [1 0 0];
 axis_expansion = 0.05;
-label_font_size = 17;
-title_font_size = 20;
-fig_size = 600;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -42,13 +40,13 @@ MVC_metric = repmat(Sampling_Params.Muscle, length(MVC_amp), 1);
 %% Plot the violin plot
 
 plot_fig = figure;
-plot_fig.Position = [200 50 fig_size fig_size];
+plot_fig.Position = [200 50 Plot_Params.fig_size Plot_Params.fig_size];
 hold on
 
 % Title
 Fig_Title = strcat('Peak', {' '}, Sampling_Params.Task, {' '}, Sampling_Params.Subject, ...
     {' '}, '[', Sampling_Params.Muscle, ']');
-title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
+title(Fig_Title, 'FontSize', Plot_Params.title_font_size, 'Interpreter', 'none');
 
 % Labels
 y_label = strcat('Peak', {' '}, Plot_Choice);
@@ -57,7 +55,7 @@ if strcmp(Plot_Choice, 'Force')
 elseif strcmp(Plot_Choice, 'EMG')
     y_label = strcat(y_label, {' '}, '(mV)');
 end
-ylabel(y_label, 'FontSize', label_font_size);
+ylabel(y_label, 'FontSize', Plot_Params.label_font_size);
 
 % Plot
 if strcmp(plot_choice, 'Box')
@@ -69,7 +67,7 @@ elseif strcmp(plot_choice, 'Violin')
     Violin_Plot(MVC_amp, MVC_metric, 'ViolinColor', plot_colors);
 end
 
-set(gca,'fontsize', label_font_size)
+set(gca,'fontsize', Plot_Params.label_font_size)
 
 % Find the y_limits
 y_min = min(MVC_amp);

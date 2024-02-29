@@ -41,16 +41,11 @@ start_idx = round(start_time/bin_width);
 stop_time = start_time + plot_length; % Sec.
 stop_idx = round(stop_time/bin_width);
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 state_colors = [0 0 0; 1 0 0; 0 0.5 0];
 %state_colors = [0 0 0; .7 .7 .7; 1 0 0; 0 0.5 0];
-line_width = 5;
 axis_expansion = 0;
-label_font_size = 25;
-legend_font_size = 25;
-title_font_size = 25;
-font_name = 'Arial';
-figure_size = 1500;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -95,16 +90,16 @@ end
 for ii = 1:length(EMG_Names)
 
     EMG_figure = figure;
-    EMG_figure.Position = [300 25 figure_size figure_size];
+    EMG_figure.Position = [300 25 Plot_Params.fig_size Plot_Params.fig_size];
     hold on
 
     % Titling the plot
     Fig_Title = strcat('MEPs:', {' '}, Subject, {' '}, '[', EMG_Names{ii}, ']');
-    %title(Fig_Title, 'FontSize', title_font_size)
+    %title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
     % Labels
-    ylabel('EMG (mV)', 'FontSize', label_font_size);
-    xlabel('Time (sec.)', 'FontSize', label_font_size);
+    ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
+    xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
 
     % Setting the x-axis limits
     % Set the axis
@@ -118,7 +113,7 @@ for ii = 1:length(EMG_Names)
     for pp = 1:length(States)
         % Set the color according to the state
         plot(absolute_timing(start_idx:stop_idx), avg_MEP{ii,1}{pp,1}(start_idx:stop_idx), ...
-            'LineWidth', line_width, 'Color', state_colors(pp,:));
+            'LineWidth', Plot_Params.mean_line_width, 'Color', state_colors(pp,:));
         % Concatenate the state with its peak to peak amplitude
         State_Labels{pp} = char(States{pp});
         %State_Labels{pp} = char(strcat(State_Labels{pp}, {' '}, '[',...
@@ -126,15 +121,15 @@ for ii = 1:length(EMG_Names)
     end
     
     % Increase the font size
-    set(gca,'fontsize', label_font_size)
+    set(gca,'fontsize', Plot_Params.label_font_size)
     set(gca,'XColor', 'none','YColor','none')
     set(gca, 'color', 'none');
     
     Axes_Legend('sec', 'mv')
 
     % Legend
-    legend(State_Labels, 'NumColumns', 1, 'FontName', font_name, ...
-        'Location', 'NorthEast', 'FontSize', legend_font_size)
+    legend(State_Labels, 'NumColumns', 1, 'FontName', Plot_Params.font_name, ...
+        'Location', 'NorthEast', 'FontSize', Plot_Params.legend_size)
     % Remove the legend's outline
     legend boxoff
     

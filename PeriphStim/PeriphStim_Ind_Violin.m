@@ -17,12 +17,10 @@ muscle_groups = {'ABH'};
 % Title info
 Subject = sig.meta.subject;
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 plot_colors = [0 0.5 0];
 axis_expansion = 0.05;
-label_font_size = 17;
-title_font_size = 20;
-fig_size = 600;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -53,7 +51,7 @@ end
 for ii = 1:length(muscle_groups)
 
     plot_fig = figure;
-    plot_fig.Position = [200 50 fig_size fig_size];
+    plot_fig.Position = [200 50 Plot_Params.fig_size Plot_Params.fig_size];
     hold on
 
     % Find the y_limits
@@ -64,7 +62,7 @@ for ii = 1:length(muscle_groups)
     Fig_Title = strcat('Peak', {' '}, Wave_Choice, '-Wave', {' '}, Subject, ...
         {' '}, '[', muscle_groups{ii}, ']');
     title_strings{ii} = Fig_Title;
-    title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
+    title(Fig_Title, 'FontSize', Plot_Params.title_font_size, 'Interpreter', 'none');
     
     % Plot
     if strcmp(plot_choice, 'Box')
@@ -76,7 +74,7 @@ for ii = 1:length(muscle_groups)
         Violin_Plot(Plot_Metric(:,ii), all_trials_metric(:,ii), 'ViolinColor', plot_colors);
     end
 
-    set(gca,'fontsize', label_font_size)
+    set(gca,'fontsize', Plot_Params.label_font_size)
 
     % Set the axis-limits
     xlim([0.5 1.5]);
@@ -89,7 +87,7 @@ for ii = 1:length(muscle_groups)
     elseif strcmp(Wave_Choice, 'EMG')
         y_label = strcat(y_label, {' '}, '(mV)');
     end
-    ylabel(y_label, 'FontSize', label_font_size);
+    ylabel(y_label, 'FontSize', Plot_Params.label_font_size);
 
 end
 

@@ -12,13 +12,9 @@ Sampling_Params = struct( ...
     'State', 'All', ... % Select the state to analyze 
     'trial_sessions', 'Ind'); % Individual Sessions or All Sessions? ('Ind' vs 'All')
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0.05;
-line_width = 5;
-label_font_size = 30;
-title_font_size = 30;
-legend_size = 30;
-fig_size = 2000;
 
 % Scatter Marker size & shape
 sz = 2500;
@@ -101,16 +97,16 @@ y_min = min([con_avg_StartMEP - con_err_StartMEP; ...
 %% Plot the Violin Plot
 
 plot_fig = figure;
-plot_fig.Position = [500 25 fig_size fig_size / 2];
+plot_fig.Position = [500 25 Plot_Params.fig_size Plot_Params.fig_size / 2];
 hold on
 
 % Title
 Fig_Title = 'Normalized StartMEP:';
-%title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
+%title(Fig_Title, 'FontSize', Plot_Params.title_font_size, 'Interpreter', 'none');
 
 % Labels
-xlabel('Startle ISI', 'FontSize', label_font_size)
-ylabel('StartMEP / MEP', 'FontSize', label_font_size)
+xlabel('Startle ISI', 'FontSize', Plot_Params.label_font_size)
+ylabel('StartMEP / MEP', 'FontSize', Plot_Params.label_font_size)
 
 % Plot
 for ii = 1:length(con_avg_StartMEP)
@@ -120,7 +116,7 @@ for ii = 1:length(con_avg_StartMEP)
     err_con = errorbar(ii, con_avg_StartMEP(ii), ... 
             con_err_StartMEP(ii), 'vertical', 'CapSize',18);
     err_con.Color = [0.85 0.325 0.098];
-        err_con.LineWidth = line_width;
+        err_con.LineWidth = Plot_Params.mean_line_width;
 end
 for ii = 1:length(SCI_avg_StartMEP)
     scatter(ii, SCI_avg_StartMEP(ii), sz, marker_metric, 'MarkerEdgeColor', ... 
@@ -129,18 +125,20 @@ for ii = 1:length(SCI_avg_StartMEP)
     err_SCI = errorbar(ii, SCI_avg_StartMEP(ii), ... 
             SCI_err_StartMEP(ii), 'vertical', 'CapSize',18);
     err_SCI.Color = [0 0.447 0.741];
-        err_SCI.LineWidth = line_width;
+        err_SCI.LineWidth = Plot_Params.mean_line_width;
 end
 
 % Line at the 100% 
 line([0 length(con_avg_StartMEP) + 1], [1 1], ... 
-    'LineStyle','--', 'Color', 'k', 'LineWidth', line_width)
+    'LineStyle','--', 'Color', 'k', 'LineWidth', Plot_Params.mean_line_width)
 
 % Plot dummy points for the legend
-dummy_con = plot(-1, -1, marker_metric, 'MarkerSize', legend_size + 10, ...
-    'MarkerEdgeColor',[0.85 0.325 0.098], 'MarkerFaceColor', [0.85 0.325 0.098], 'LineWidth', line_width);
-dummy_SCI = plot(-2, -2, marker_metric, 'MarkerSize', legend_size + 10, ...
-    'MarkerEdgeColor',[0 0.447 0.741], 'MarkerFaceColor', [0 0.447 0.741], 'LineWidth', line_width);
+dummy_con = plot(-1, -1, marker_metric, 'MarkerSize', Plot_Params.legend_size + 10, ...
+    'MarkerEdgeColor',[0.85 0.325 0.098], 'MarkerFaceColor', [0.85 0.325 0.098], ...
+    'LineWidth', Plot_Params.mean_line_width);
+dummy_SCI = plot(-2, -2, marker_metric, 'MarkerSize', Plot_Params.legend_size + 10, ...
+    'MarkerEdgeColor',[0 0.447 0.741], 'MarkerFaceColor', [0 0.447 0.741], ...
+    'LineWidth', Plot_Params.mean_line_width);
 
 % Set the axis-limits
 xlim([0 length(con_avg_StartMEP) + 1]);
@@ -148,12 +146,12 @@ ylim([y_min - axis_expansion y_max + axis_expansion]);
 
 % Plot the legend
 legend([dummy_con, dummy_SCI], {'Control','SCI'}, ...
-    'FontSize', legend_size, 'Location', 'southwest');
+    'FontSize', Plot_Params.legend_size, 'Location', 'southwest');
 legend boxoff
 
 % Increase the font size
-set(gca,'fontsize', label_font_size)
-set(gca,'linewidth', line_width - 2)
+set(gca,'fontsize', Plot_Params.label_font_size)
+set(gca,'linewidth', Plot_Params.mean_line_width - 2)
 
 % Axis Editing
 figure_axes = gca;

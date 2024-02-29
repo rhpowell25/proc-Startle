@@ -23,13 +23,8 @@ start_idx = start_length/bin_width;
 stop_length = 1.25; % Sec.
 stop_idx = round(stop_length/bin_width);
 
-% Font specifications
-label_font_size = 25;
-legend_font_size = 25;
-title_font_size = 25;
-mean_line_width = 2;
-font_name = 'Arial';
-figure_size = 2000;
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -49,16 +44,16 @@ avg_FS_EMG = mean(per_trial_FS_EMG{1,1}, 2);
 %% Plot the individual EMG traces
 
 EMG_figure = figure;
-EMG_figure.Position = [100 25 figure_size figure_size / 2];
+EMG_figure.Position = [100 25 Plot_Params.fig_size Plot_Params.fig_size / 2];
 hold on
 
 % Titling the plot
 Fig_Title = strcat(Task, {' '}, 'Reaction Times:', {' '}, Subject);
-%title(Fig_Title, 'FontSize', title_font_size)
+%title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
 % Labels
-ylabel('Avg EMG (mV)', 'FontSize', label_font_size);
-xlabel('Time (sec.)', 'FontSize', label_font_size);
+ylabel('Avg EMG (mV)', 'FontSize', Plot_Params.label_font_size);
+xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
 
 % Setting the x-axis limits
 xlim([absolute_timing(start_idx), absolute_timing(stop_idx)]);
@@ -72,13 +67,13 @@ plot(absolute_timing(start_idx:stop_idx), avg_FS_EMG(start_idx:stop_idx), ...
     'LineWidth', 2, 'Color', 'r');
 
 % Legend
-%legend('F', 'F+s', 'F+S', 'NumColumns', 1, 'FontName', font_name, ...
-%    'Location', 'NorthWest', 'FontSize', legend_font_size)
+%legend('F', 'F+s', 'F+S', 'NumColumns', 1, 'FontName', Plot_Params.font_name, ...
+%    'Location', 'NorthWest', 'FontSize', Plot_Params.legend_size)
 % Remove the legend's outline
 %legend boxoff
 
 % Increase the font size
-set(gca,'fontsize', label_font_size)
+set(gca,'fontsize', Plot_Params.label_font_size)
 set(gca,'XColor', 'none','YColor','none')
 set(gca, 'color', 'none');
     

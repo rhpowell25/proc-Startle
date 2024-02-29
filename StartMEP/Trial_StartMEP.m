@@ -54,14 +54,9 @@ stop_time = stim_time + Time_Settings.post_gocue; % Sec.
 start_idx = round(start_time/bin_width);
 stop_idx = round(stop_time/bin_width);
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0;
-label_font_size = 15;
-title_font_size = 15;
-figure_width = 700;
-figure_height = 700;
-legend_font_size = 15;
-font_name = 'Arial';
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -116,16 +111,16 @@ if isequal(Plot_Figs, 1)
     for ii = 1:length(EMG_Names)
     
         EMG_figure = figure;
-        EMG_figure.Position = [300 100 figure_width figure_height];
+        EMG_figure.Position = [300 100 Plot_Params.fig_size Plot_Params.fig_size];
         hold on
 
         % Titling the plot
         Fig_Title = strcat('MEPs:', {' '}, Subject, {' '}, State, {' '}, '[', EMG_Names{ii}, ']');
-        title(Fig_Title, 'FontSize', title_font_size)
+        title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
     
         % Labels
-        ylabel('EMG (mV)', 'FontSize', label_font_size);
-        xlabel('Time (sec.)', 'FontSize', label_font_size);
+        ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
+        xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
     
         for pp = 1:width(per_trial_EMG{ii})
             plot(absolute_timing(start_idx:stop_idx), per_trial_EMG{ii}(start_idx:stop_idx,pp))
@@ -146,8 +141,8 @@ if isequal(Plot_Figs, 1)
             ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
                 'FitBoxToText', 'on', 'verticalalignment', 'top', ...
                 'EdgeColor','none', 'horizontalalignment', 'center');
-            ann_legend.FontSize = legend_font_size;
-            ann_legend.FontName = font_name;
+            ann_legend.FontSize = Plot_Params.legend_size;
+            ann_legend.FontName = Plot_Params.font_name;
         end
 
     end % End of the muscle loop

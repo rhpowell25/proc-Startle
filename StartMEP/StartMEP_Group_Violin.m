@@ -18,17 +18,11 @@ plot_choice = 'Violin';
 % Do you want to show the statistics (1 = Yes, 0 = No)
 plot_stats = 0;
 
-% Font specifications
-line_width = 3;
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0.5;
-mean_line_width = 4;
 plot_colors = [0.85 0.325 0.098; 0 0.447 0.741];
-label_font_size = 25;
-title_font_size = 25;
 p_value_dims = [0.51 0.45 0.44 0.44];
-legend_size = 25;
-font_name = 'Arial';
-fig_size = 1000;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -125,15 +119,15 @@ Fig_Title = strcat('StartMEP:', {' '}, '[', State, ']');
 %% Plot the Violin Plot
 
 plot_fig = figure;
-plot_fig.Position = [200 50 fig_size fig_size];
+plot_fig.Position = [200 50 Plot_Params.fig_size Plot_Params.fig_size];
 hold on
 
 % Title
-title(Fig_Title, 'FontSize', title_font_size, 'Interpreter', 'none');
+title(Fig_Title, 'FontSize', Plot_Params.title_font_size, 'Interpreter', 'none');
 
 % Labels
-xlabel('Group', 'FontSize', label_font_size)
-ylabel(y_label, 'FontSize', label_font_size)
+xlabel('Group', 'FontSize', Plot_Params.label_font_size)
+ylabel(y_label, 'FontSize', Plot_Params.label_font_size)
 
 % Plot
 if strcmp(plot_choice, 'Box')
@@ -151,7 +145,7 @@ elseif strcmp(plot_choice, 'Violin')
 end
 
 % Increase the font size
-set(gca,'fontsize', label_font_size)
+set(gca,'fontsize', Plot_Params.label_font_size)
 
 % Set the axis-limits
 xlim([0.5 2.5]);
@@ -159,7 +153,7 @@ ylim([y_min - axis_expansion y_max + axis_expansion]);
 
 % Axis Editing
 figure_axes = gca;
-set(gca,'linewidth', line_width)
+set(gca,'linewidth', Plot_Params.mean_line_width)
 % Set ticks to outside
 set(figure_axes,'TickDir','out');
 % Remove the top and right tick marks
@@ -173,7 +167,7 @@ figure_axes.YAxis.TickLabels = y_labels;
 % Line at the 100% 
 if ~strcmp(State, 'MEP')
     line([0.5 2.5], [100 100], ... 
-        'LineStyle','--', 'Color', 'k', 'LineWidth', mean_line_width)
+        'LineStyle','--', 'Color', 'k', 'LineWidth', Plot_Params.mean_line_width)
 end
 
 % Annotation of the p_value
@@ -188,8 +182,8 @@ if isequal(plot_stats, 1)
         ann_p_value = annotation('textbox', p_value_dims, 'String', p_value_string, ... 
             'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
             'EdgeColor','none', 'horizontalalignment', 'center');
-        ann_p_value.FontSize = legend_size;
-        ann_p_value.FontName = font_name;
+        ann_p_value.FontSize = Plot_Params.legend_size;
+        ann_p_value.FontName = Plot_Params.font_name;
     end
     
     if isequal(round(peaktopeak_p_val, 3), 0)
@@ -198,8 +192,8 @@ if isequal(plot_stats, 1)
         ann_p_value = annotation('textbox', p_value_dims, 'String', p_value_string, ...
             'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
             'EdgeColor','none', 'horizontalalignment', 'center');
-        ann_p_value.FontSize = legend_size;
-        ann_p_value.FontName = font_name;
+        ann_p_value.FontSize = Plot_Params.legend_size;
+        ann_p_value.FontName = Plot_Params.font_name;
     end
 
     %% Save the file if selected

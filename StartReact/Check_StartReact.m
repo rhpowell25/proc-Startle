@@ -30,11 +30,8 @@ trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 stop_length = 2; % Sec.
 stop_idx = stop_length/bin_width;
 
-% Font specifications
-label_font_size = 15;
-title_font_size = 15;
-figure_width = 800;
-figure_height = 700;
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 %% Indexes for rewarded trials
 
@@ -88,7 +85,7 @@ end
 for ii = 1:width(all_trials_EMG{ii})
 
     EMG_figure = figure;
-    EMG_figure.Position = [300 75 figure_width figure_height];
+    EMG_figure.Position = [300 75 Plot_Params.fig_size Plot_Params.fig_size];
     hold on
 
     for pp = 1:length(EMG_Names)
@@ -100,11 +97,11 @@ for ii = 1:width(all_trials_EMG{ii})
         Trial_num = trial_info_table.number(rewarded_idxs(ii));
         EMG_title = strcat(EMG_Names{pp}, {' '}, num2str(Trial_num));
         Fig_Title = strcat('Reaction Time: [', State, ']', {' '}, Subject, {' '}, EMG_title{1});
-        title(Fig_Title, 'FontSize', title_font_size)
+        title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
     
         % Labels
-        ylabel('EMG (mV)', 'FontSize', label_font_size);
-        xlabel('Time (sec.)', 'FontSize', label_font_size);
+        ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
+        xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
 
         % Plot the EMG
         plot(absolute_timing(1:stop_idx), all_trials_EMG{pp}(1:stop_idx,ii))

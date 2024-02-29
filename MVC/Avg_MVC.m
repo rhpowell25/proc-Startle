@@ -19,14 +19,9 @@ Task = strrep(sig.meta.task, '_', ' ');
 bin_width = sig.bin_width;
 trial_length = length(sig.raw_EMG{1})*bin_width; % Sec.
 
-% Font specifications
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 axis_expansion = 0.025;
-label_font_size = 15;
-legend_font_size = 12;
-title_font_size = 15;
-font_name = 'Arial';
-figure_width = 700;
-figure_height = 350;
 
 % Close all previously open figures if you're saving 
 if ~isequal(Save_File, 0)
@@ -68,12 +63,12 @@ end
 %% Plot the mean traces
 
 Metric_figure = figure;
-Metric_figure.Position = [300 75 figure_width figure_height];
+Metric_figure.Position = [300 75 Plot_Params.fig_size Plot_Params.fig_size / 2];
 hold on
 
 % Title
 Fig_Title = strcat('Average', {' '}, Plot_Choice, ':', {' '}, Subject, {' '}, Task);
-sgtitle(Fig_Title, 'FontSize', title_font_size)
+sgtitle(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
 for ii = 1:length(Plot_Names)
     subplot(length(Plot_Names),1,ii)
@@ -81,9 +76,9 @@ for ii = 1:length(Plot_Names)
     
     % Y Labels
     if isequal(Plot_Choice, 'EMG')
-        ylabel('EMG (mV)', 'FontSize', label_font_size);
+        ylabel('EMG (mV)', 'FontSize', Plot_Params.label_font_size);
     elseif isequal(Plot_Choice, 'Force')
-        ylabel('Force (N)', 'FontSize', label_font_size);
+        ylabel('Force (N)', 'FontSize', Plot_Params.label_font_size);
     end
     
     % Mean EMG
@@ -95,7 +90,7 @@ for ii = 1:length(Plot_Names)
         'LineWidth', 1, 'LineStyle','--', 'Color', 'r');
     
     legend(sprintf('%s', Plot_Names{ii}), ... 
-            'NumColumns', 1, 'FontSize', legend_font_size, 'FontName', font_name, ...
+            'NumColumns', 1, 'FontSize', Plot_Params.legend_size, 'FontName', Plot_Params.font_name, ...
             'Location', 'NorthEast');
     legend boxoff
 
@@ -104,7 +99,7 @@ for ii = 1:length(Plot_Names)
 end
 
 % X Label
-xlabel('Time (sec.)', 'FontSize', label_font_size);
+xlabel('Time (sec.)', 'FontSize', Plot_Params.label_font_size);
 
 %% Save the file if selected
 Save_Figs(Fig_Title, Save_File)
